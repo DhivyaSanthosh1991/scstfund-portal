@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Apply — TN SC/ST Startup Fund</title>
+<meta name="description" content="Apply for the Tamil Nadu SC/ST Startup Fund run by StartupTN.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/base.css">
+<style>
+/* Layout: a long government application split into sections, with a sticky
+   section list on the left (top on phones), autosave status, and a final
+   checklist that mirrors the server-side submit rules. */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.top h1{font-size:26px;font-weight:700;margin-top:4px}
+.top-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.save{font-size:12.5px;color:var(--muted)}
+.save.err{color:var(--danger)}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:start}
+.nav{position:sticky;top:16px;display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;text-align:left;background:none;border:0;border-radius:var(--r);padding:8px 10px;font-size:14px;color:var(--muted)}
+.nav button:hover{background:var(--surface)}
+.nav button.on{background:var(--surface);color:var(--fg);font-weight:600;box-shadow:inset 3px 0 0 var(--accent)}
+.nav .n{font-family:var(--font-mono);font-size:11.5px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;flex:none}
+.nav button.done .n{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .nav{position:static;flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:4px}
+  .nav button{white-space:nowrap;flex:none}
+  .nav button.on{box-shadow:inset 0 -3px 0 var(--accent)}
+}
+.section{display:flex;flex-direction:column;gap:16px}
+.section-h h2{font-size:21px;font-weight:600}
+.section-h p{margin:6px 0 0;color:var(--muted);max-width:68ch}
+.pager{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+
+.founder{border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--surface)}
+.founder-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.founder-h b{font-family:var(--font-head);font-size:15px}
+.meter{display:flex;flex-direction:column;gap:8px}
+.bar{position:relative;height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--mc)}
+.bar .mark{position:absolute;top:-3px;bottom:-3px;left:50%;width:2px;background:var(--fg);opacity:.55}
+.meter-row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;flex-wrap:wrap}
+.meter-row b{font-family:var(--font-mono)}
+.status-ok{color:var(--ok);font-weight:600}
+.status-bad{color:var(--danger);font-weight:600}
+
+.rep{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:grid;gap:8px;align-items:end}
+.rep-row input,.rep-row select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px}
+.rep-head{display:grid;gap:8px;font-size:12px;color:var(--muted);font-weight:500}
+.x{width:34px;height:36px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);color:var(--faint)}
+.x:hover{color:var(--danger);border-color:var(--danger)}
+@media (max-width:620px){.rep-head{display:none}.rep-row{grid-template-columns:1fr!important}.rep-row .x{justify-self:end}}
+.sum-line{display:flex;justify-content:space-between;font-size:13.5px;border-top:1px dashed var(--line);padding-top:8px}
+.sum-line b{font-family:var(--font-mono)}
+
+.checklist{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.checklist li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.checklist .ic{flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;margin-top:2px}
+.checklist .ok .ic{background:var(--ok);color:var(--surface)}
+.checklist .no .ic{border:1.5px solid var(--danger);color:var(--danger)}
+.checklist .no button{font-size:13px}
+.intro{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:12px}
+.intro ul{margin:8px 0 0;padding-left:18px;color:var(--muted)}
+.intro li{margin:4px 0}
+@media (max-width:860px){.intro{grid-template-columns:1fr}}
+.done-card{max-width:640px;margin:20px auto;display:flex;flex-direction:column;gap:14px}
+.done-card .no{font-family:var(--font-mono);font-size:22px;color:var(--accent)}
+dl.kv{display:grid;grid-template-columns:180px minmax(0,1fr);gap:6px 14px;margin:0;font-size:14px}
+dl.kv dt{color:var(--muted)}
+dl.kv dd{margin:0}
+@media (max-width:560px){dl.kv{grid-template-columns:1fr}dl.kv dd{margin-bottom:6px}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="state">Loading…</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+"use strict";
+const CFG = window.SCST_CONFIG || {};
+const BUCKET = CFG.bucket || 'application-docs';
+const MAX_MB = 10;
+const ACCEPT = 'application/pdf,image/jpeg,image/png';
+const DISTRICTS = ['Ariyalur','Chengalpattu','Chennai','Coimbatore','Cuddalore','Dharmapuri','Dindigul','Erode','Kallakurichi','Kancheepuram','Kanniyakumari','Karur','Krishnagiri','Madurai','Mayiladuthurai','Nagapattinam','Namakkal','Nilgiris','Perambalur','Pudukkottai','Ramanathapuram','Ranipet','Salem','Sivaganga','Tenkasi','Thanjavur','Theni','Thoothukudi','Tiruchirappalli','Tirunelveli','Tirupathur','Tiruppur','Tiruvallur','Tiruvannamalai','Tiruvarur','Vellore','Viluppuram','Virudhunagar'];
+const ENTITY = ['Private Limited Company','Limited Liability Partnership (LLP)','Registered Partnership Firm','Other'];
+const STAGES = [['idea','Idea stage'],['prototype','Prototype'],['early','Early stage (product in market)'],['growth','Growth stage (scaling revenue)']];
+const FYS = ['2023-24','2024-25','2025-26'];
+const INSTRUMENTS = ['Grant','Equity','Debt','Convertible note','Other'];
+const DOCS = [
+  {kind:'pitch_deck', label:'Pitch deck', req:true},
+  {kind:'incorporation', label:'Certificate of incorporation', req:true},
+  {kind:'cap_table', label:'Shareholding pattern / cap table', req:true, hint:'Shows each shareholder and their percentage.'},
+  {kind:'financials', label:'Financial statements (last 2–3 years)', multi:true},
+  {kind:'quotation', label:'Quotations for capital expenditure', multi:true},
+  {kind:'loi', label:'Letters of intent, purchase orders or testimonials', multi:true},
+  {kind:'other', label:'Other supporting documents (patents, certifications)', multi:true}
+];
+const SECTIONS = [
+  {id:'startup', title:'Startup details', intro:'Details of the registered entity applying for the fund.'},
+  {id:'founders', title:'Founders & eligibility', intro:'SC/ST founders must together hold more than 50% of the company\'s equity, and operational and management control must rest with SC/ST shareholders.'},
+  {id:'business', title:'Business', intro:'Explain the problem, your solution and how the business makes money.'},
+  {id:'financials', title:'Financials', intro:'Revenue to date and any money raised so far. Enter amounts in rupees.'},
+  {id:'team', title:'Team', intro:'The people working on the startup today.'},
+  {id:'ask', title:'Funding ask', intro:'How much you are requesting and how you will use it.'},
+  {id:'documents', title:'Documents', intro:'PDF, JPG or PNG files, up to '+MAX_MB+' MB each.'},
+  {id:'submit', title:'Review & submit', intro:'Check the list below. You can submit once every item is complete. After submitting you cannot edit the application.'}
+];
+
+let sb=null, user=null, app=null, founders=[], docs=[], sec=0;
+let authStep='email', authEmail='', authBusy=false, authMsg='';
+let saving=0, saveErr=false, lastSaved=null, submitErr='', submitting=false;
+
+/* ---------- helpers ---------- */
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDate(v){if(!v)return '—';const d=new Date(v.length===10?v+'T00:00:00':v);return isNaN(d)?'—':d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+function inr(n){return n===''||n==null||isNaN(n)?'—':'₹'+Number(n).toLocaleString('en-IN');}
+function num(v){return v===''||v==null?null:Number(v);}
+function blank(v){return v==null||String(v).trim()==='';}
+function kb(b){return b<1048576?Math.round(b/1024)+' KB':(b/1048576).toFixed(1)+' MB';}
+function toast(m){const o=document.querySelector('.toast');if(o)o.remove();const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3200);}
+function safeName(n){return n.replace(/[^A-Za-z0-9._-]+/g,'_').slice(-80);}
+const $=id=>document.getElementById(id);
+
+/* ---------- save state ---------- */
+function setSave(delta,error){
+  saving+=delta;
+  if(error){saveErr=true;}
+  else if(delta<0&&saving===0){saveErr=false;lastSaved=new Date();}
+  const el=$('save');if(el){el.className='save'+(saveErr?' err':'');el.textContent=saveText();}
+}
+function saveText(){
+  if(saving>0)return 'Saving…';
+  if(saveErr)return 'Some changes were not saved. Check your connection.';
+  if(lastSaved)return 'Saved '+lastSaved.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  return 'Changes save automatically';
+}
+
+const appPatch={};let appTimer=null;
+function queueApp(field,value){app[field]=value;appPatch[field]=value;clearTimeout(appTimer);appTimer=setTimeout(flushApp,600);refreshLive();}
+async function flushApp(){
+  const keys=Object.keys(appPatch);if(!keys.length)return;
+  const patch={};keys.forEach(k=>{patch[k]=appPatch[k];delete appPatch[k];});
+  setSave(1);const {error}=await sb.from('applications').update(patch).eq('id',app.id);setSave(-1,error);
+}
+const fPatch={},fTimers={};
+function queueFounder(id,field,value){
+  const f=founders.find(x=>x.id===id);if(!f)return;f[field]=value;
+  (fPatch[id]=fPatch[id]||{})[field]=value;clearTimeout(fTimers[id]);fTimers[id]=setTimeout(()=>flushFounder(id),600);refreshLive();
+}
+async function flushFounder(id){
+  const p=fPatch[id];if(!p)return;delete fPatch[id];
+  setSave(1);const {error}=await sb.from('founders').update(p).eq('id',id);setSave(-1,error);
+}
+async function flushAll(){clearTimeout(appTimer);await flushApp();await Promise.all(Object.keys(fPatch).map(id=>{clearTimeout(fTimers[id]);return flushFounder(id);}));}
+window.addEventListener('beforeunload',e=>{if(saving>0||Object.keys(appPatch).length||Object.keys(fPatch).length){e.preventDefault();e.returnValue='';}});
+
+/* ---------- rules (mirror submit_application in schema.sql) ---------- */
+function equity(){
+  let total=0,scst=0,ctrl=0;
+  founders.forEach(f=>{const e=Number(f.equity_pct)||0;total+=e;if(f.community==='SC'||f.community==='ST'){scst+=e;if(f.has_control)ctrl++;}});
+  return {total:Math.round(total*100)/100,scst:Math.round(scst*100)/100,ctrl};
+}
+function missing(){
+  const m=[];const add=(s,t)=>m.push({s,t});
+  if(blank(app.legal_name))add(0,'Startup legal name');
+  if(blank(app.entity_type))add(0,'Entity type');
+  if(!app.incorporation_date)add(0,'Date of incorporation');
+  if(blank(app.address))add(0,'Registered address');
+  if(blank(app.district))add(0,'District');
+  if(blank(app.sector))add(0,'Sector');
+  if(!app.stage)add(0,'Stage of the startup');
+  if(!founders.length)add(1,'At least one founder');
+  if(founders.some(f=>blank(f.full_name)||!f.community||f.equity_pct==null||f.equity_pct===''))add(1,'Name, community and shareholding for every founder');
+  const e=equity();
+  if(e.total>100)add(1,'Founder shareholding adds up to more than 100%');
+  if(e.scst<=50)add(1,'SC/ST founders must together hold more than 50% of equity (now '+e.scst+'%)');
+  if(e.ctrl===0)add(1,'At least one SC/ST founder holding operational and management control');
+  if(founders.some(f=>(f.community==='SC'||f.community==='ST')&&!f.cert_path))add(1,'Community certificate for every SC/ST founder');
+  if(blank(app.control_details))add(1,'How operational and management control is held');
+  if(!app.declare_control)add(1,'Declaration on equity and control');
+  ['problem','solution','business_model','revenue_model'].forEach((k,i)=>{if(blank(app[k]))add(2,['Problem','Solution','Business model','Revenue model'][i]);});
+  if(!(Number(app.ask_amount)>0))add(5,'Funding amount requested');
+  DOCS.filter(d=>d.req).forEach(d=>{if(!docs.some(x=>x.kind===d.kind))add(6,d.label);});
+  if(!(app.declare_accurate&&app.declare_no_duplicate&&app.consent_processing&&app.consent_sharing))add(7,'All declarations and consents');
+  return m;
+}
+function sectionDone(i){return i<7&&!missing().some(x=>x.s===i);}
+
+/* ---------- field builders ---------- */
+function F(field,label,o={}){
+  const v=app[field];const req=o.req?' <span class="req" aria-hidden="true">*</span>':'';
+  const lab=`<span>${label}${req}</span>`;const hint=o.hint?`<small>${esc(o.hint)}</small>`:'';
+  const cls=`f ${o.wide?'wide':''}`;const attrs=`id="a-${field}" data-a="${field}" ${o.req?'aria-required="true"':''}`;
+  if(o.type==='area')return `<label class="${cls} wide">${lab}<textarea ${attrs} ${o.ph?`placeholder="${esc(o.ph)}"`:''}>${esc(v||'')}</textarea>${hint}</label>`;
+  if(o.type==='select')return `<label class="${cls}">${lab}<select ${attrs}><option value="">Select</option>${o.opts.map(x=>{const [k,l]=Array.isArray(x)?x:[x,x];return `<option value="${esc(k)}" ${v===k?'selected':''}>${esc(l)}</option>`;}).join('')}</select>${hint}</label>`;
+  return `<label class="${cls}">${lab}<input ${attrs} type="${o.type||'text'}" ${o.type==='number'?'min="0" step="1" inputmode="numeric" data-num="1"':''} value="${esc(v==null?'':v)}" ${o.ph?`placeholder="${esc(o.ph)}"`:''} ${o.max?`maxlength="${o.max}"`:''}>${hint}</label>`;
+}
+function C(field,label){return `<label class="check"><input type="checkbox" id="a-${field}" data-a="${field}" ${app[field]?'checked':''}><span>${label}</span></label>`;}
+
+function fileBox(label,items,uploadAttrs,o={}){
+  const list=items.map(d=>`<div class="file-row"><button type="button" class="linklike name" data-view="${esc(d.path)}">${esc(d.file_name||'File')}</button>
+    <span class="meta">${d.size_bytes?kb(d.size_bytes):''}</span><button type="button" class="btn btn-sm btn-quiet" ${o.del(d)}>Remove</button></div>`).join('');
+  const canAdd=o.multi||!items.length;
+  return `<div class="file ${o.wide===false?'':'wide'}"><div class="file-row"><span class="name" style="font-weight:600">${label}${o.req?' <span style="color:var(--danger)">*</span>':''}</span></div>
+    ${o.hint?`<span class="meta">${esc(o.hint)}</span>`:''}
+    ${list||'<span class="meta">No file added yet</span>'}
+    ${canAdd?`<input type="file" accept="${ACCEPT}" ${uploadAttrs} aria-label="Add ${esc(label)}">`:''}</div>`;
+}
+
+/* ---------- sections ---------- */
+function sStartup(){
+  return `<div class="card grid">
+    ${F('legal_name','Registered name of the startup',{req:true,wide:true})}
+    ${F('brand_name','Brand or trade name')}
+    ${F('entity_type','Entity type',{req:true,type:'select',opts:ENTITY})}
+    ${F('cin','CIN / LLPIN',{hint:'As on the certificate of incorporation'})}
+    ${F('incorporation_date','Date of incorporation',{req:true,type:'date'})}
+    ${F('address','Registered address',{req:true,type:'area'})}
+    ${F('district','District',{req:true,type:'select',opts:DISTRICTS})}
+    ${F('pincode','PIN code',{max:6})}
+    ${F('dpiit_no','DPIIT recognition number',{hint:'If recognised'})}
+    ${F('startuptn_id','StartupTN registration ID',{hint:'If registered'})}
+    ${F('gstin','GSTIN',{hint:'If registered'})}
+    ${F('website','Website',{type:'url',ph:'https://'})}
+    ${F('sector','Sector',{req:true,ph:'e.g. AgriTech, HealthTech, Manufacturing'})}
+    ${F('stage','Stage of the startup',{req:true,type:'select',opts:STAGES})}
+  </div>`;
+}
+function meter(){
+  const e=equity();const okE=e.scst>50,okT=e.total<=100,okC=e.ctrl>0;
+  return `<div class="card meter" id="meter">
+    <div class="meter-row"><span>SC/ST founders' combined equity</span><b>${e.scst}%</b></div>
+    <div class="bar" role="img" aria-label="SC/ST equity ${e.scst} percent; the rule requires more than 50 percent"><i style="width:${Math.min(100,e.scst)}%;--mc:${okE?'var(--ok)':'var(--danger)'}"></i><span class="mark"></span></div>
+    <div class="meter-row"><span class="${okE?'status-ok':'status-bad'}">${okE?'Meets the more-than-50% equity rule':'Needs more than 50% (the line marks 50%)'}</span><span class="hint">All founders listed: <b class="mono">${e.total}%</b>${okT?'':' <span class="status-bad">over 100%</span>'}</span></div>
+    <div class="meter-row"><span class="${okC?'status-ok':'status-bad'}">${okC?'An SC/ST founder holds management control':'Mark the SC/ST founder(s) who hold operational and management control'}</span></div>
+  </div>`;
+}
+function founderCard(f,i){
+  const sc=f.community==='SC'||f.community==='ST';
+  const v=k=>esc(f[k]==null?'':f[k]);const at=k=>`id="fo-${f.id}-${k}" data-fo="${f.id}" data-k="${k}"`;
+  return `<div class="founder"><div class="founder-h"><b>Founder ${i+1}</b>${founders.length>1?`<button type="button" class="btn btn-sm btn-quiet" data-rmf="${f.id}">Remove</button>`:''}</div>
+    <div class="grid">
+      <label class="f"><span>Full name <span class="req">*</span></span><input ${at('full_name')} value="${v('full_name')}"></label>
+      <label class="f"><span>Designation</span><input ${at('designation')} value="${v('designation')}" placeholder="e.g. Managing Director"></label>
+      <label class="f"><span>Email</span><input type="email" ${at('email')} value="${v('email')}"></label>
+      <label class="f"><span>Phone</span><input type="tel" ${at('phone')} value="${v('phone')}"></label>
+      <label class="f"><span>Community <span class="req">*</span></span><select ${at('community')}><option value="">Select</option>${['SC','ST','Other'].map(c=>`<option ${f.community===c?'selected':''}>${c}</option>`).join('')}</select></label>
+      <label class="f"><span>Shareholding (%) <span class="req">*</span></span><input type="number" min="0" max="100" step="0.01" inputmode="decimal" data-num="1" class="mono" ${at('equity_pct')} value="${v('equity_pct')}"></label>
+      <label class="check wide"><input type="checkbox" ${at('has_control')} ${f.has_control?'checked':''}><span>Holds operational and management control (for example Managing Director, CEO or Managing Partner)</span></label>
+      <label class="f"><span>LinkedIn or profile link</span><input type="url" ${at('linkedin')} value="${v('linkedin')}"></label>
+      <label class="f wide"><span>Education and experience</span><textarea ${at('background')}>${v('background')}</textarea></label>
+      ${sc?fileBox('Community certificate',f.cert_path?[{path:f.cert_path,file_name:f.cert_name}]:[],`data-cert="${f.id}"`,{req:true,del:()=>`data-rmcert="${f.id}"`,hint:'Issued by the competent authority in the founder\'s name.'}):''}
+    </div></div>`;
+}
+function sFounders(){
+  return `${meter()}
+    ${founders.map(founderCard).join('')}
+    <div><button type="button" class="btn" data-addf="1">Add another founder</button></div>
+    <div class="card grid">
+      ${F('control_details','How is operational and management control held?',{req:true,type:'area',ph:'For example: the Managing Director and a majority of the board are SC/ST shareholders; key decisions are taken by them.'})}
+      <div class="wide">${C('declare_control','I declare that SC/ST founders together hold more than 50% of the equity of the company and that operational and management control is vested in SC/ST shareholders.')}</div>
+    </div>`;
+}
+function sBusiness(){
+  return `<div class="card grid">
+    ${F('problem','Problem you are solving',{req:true,type:'area'})}
+    ${F('solution','Your solution and product',{req:true,type:'area'})}
+    ${F('business_model','Business model',{req:true,type:'area',ph:'Who pays, for what, and through which channels'})}
+    ${F('revenue_model','Revenue model',{req:true,type:'area',ph:'Pricing, unit economics, recurring or one-time'})}
+    ${F('target_customers','Target customers',{type:'area'})}
+    ${F('competitors','Competitors and alternatives',{type:'area'})}
+    ${F('usp','What makes you different',{type:'area'})}
+    ${F('scalability','Market size and how the business can scale',{type:'area'})}
+    ${F('traction','Traction so far',{type:'area',ph:'Customers, pilots, orders, letters of intent'})}
+  </div>`;
+}
+function rep(field,cols,blankRow,addLabel){
+  const rows=app[field]||[];const tmpl=cols.map(c=>c.w||'1fr').join(' ')+' 34px';
+  return `<div class="rep"><div class="rep-head" style="grid-template-columns:${tmpl}">${cols.map(c=>`<span>${c.label}</span>`).join('')}<span></span></div>
+    ${rows.map((r,i)=>`<div class="rep-row" style="grid-template-columns:${tmpl}">${cols.map(c=>c.opts?
+      `<select id="r-${field}-${i}-${c.k}" data-r="${field}" data-i="${i}" data-k="${c.k}" aria-label="${c.label}"><option value="">Select</option>${c.opts.map(o=>`<option ${r[c.k]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`:
+      `<input id="r-${field}-${i}-${c.k}" data-r="${field}" data-i="${i}" data-k="${c.k}" aria-label="${c.label}" ${c.num?'type="number" min="0" inputmode="numeric" data-num="1" class="mono"':''} value="${esc(r[c.k]==null?'':r[c.k])}" ${c.ph?`placeholder="${esc(c.ph)}"`:''}>`).join('')}
+      <button type="button" class="x" data-rmr="${field}" data-i="${i}" aria-label="Remove row">✕</button></div>`).join('')}
+    <div><button type="button" class="btn btn-sm" data-addr="${field}" data-blank='${esc(JSON.stringify(blankRow))}'>${addLabel}</button></div></div>`;
+}
+function sFinancials(){
+  const hist=FYS.map(fy=>{const r=(app.revenue_history||[]).find(x=>x.fy===fy)||{};return `<label class="f"><span>Revenue FY ${fy} (₹)</span><input type="number" min="0" inputmode="numeric" class="mono" id="rev-${fy}" data-rev="${fy}" value="${r.revenue==null?'':esc(r.revenue)}"></label>`;}).join('');
+  return `<div class="card grid grid-3">${hist}</div>
+    <div class="card grid">${F('monthly_revenue','Current monthly revenue (₹)',{type:'number'})}</div>
+    <div class="card"><h3 style="font-size:15px;margin-bottom:10px">Funds raised so far</h3>
+      ${rep('funds_raised',[{k:'source',label:'Source',w:'2fr',ph:'Investor, scheme or lender'},{k:'instrument',label:'Type',opts:INSTRUMENTS},{k:'amount',label:'Amount (₹)',num:1},{k:'year',label:'Year',w:'90px',ph:'2025'}],{source:'',instrument:'',amount:null,year:''},'Add funding')}</div>
+    <div class="card grid">${F('existing_loans','Existing loans and repayment obligations',{type:'area'})}</div>`;
+}
+function sTeam(){return `<div class="card grid">${F('fulltime_employees','Full-time employees',{type:'number'})}${F('key_team','Key team members and roles',{type:'area'})}</div>`;}
+function sAsk(){
+  const u=(app.utilisation||[]).reduce((a,r)=>a+(Number(r.amount)||0),0);const ask=Number(app.ask_amount)||0;
+  return `<div class="card grid">${F('ask_amount','Funding requested (₹)',{req:true,type:'number'})}</div>
+    <div class="card"><h3 style="font-size:15px;margin-bottom:10px">How you will use the funds</h3>
+      ${rep('utilisation',[{k:'head',label:'Use',w:'2fr',ph:'e.g. Machinery, hiring, marketing, working capital'},{k:'amount',label:'Amount (₹)',num:1}],{head:'',amount:null},'Add a line')}
+      <div class="sum-line" id="util-sum" style="margin-top:10px"><span>Total planned</span><b>${inr(u)}${ask&&u!==ask?` <span class="hint">(request is ${inr(ask)})</span>`:''}</b></div></div>
+    <div class="card"><h3 style="font-size:15px;margin-bottom:10px">Milestones for the next 12–18 months</h3>
+      ${rep('milestones',[{k:'milestone',label:'Milestone',w:'3fr'},{k:'month',label:'Target month',ph:'e.g. Jun 2027'}],{milestone:'',month:''},'Add a milestone')}</div>`;
+}
+function sDocs(){
+  return `<div class="card grid">${DOCS.map(d=>fileBox(d.label,docs.filter(x=>x.kind===d.kind),`data-doc="${d.kind}"`,{req:d.req,multi:d.multi,hint:d.hint,del:x=>`data-rmdoc="${x.id}"`})).join('')}
+    <p class="hint wide" style="margin:0">Community certificates are added with each founder in section 2.</p></div>`;
+}
+function sSubmit(){
+  const m=missing();
+  const items=[0,1,2,5,6].map(i=>{const ms=m.filter(x=>x.s===i);
+    return ms.length?ms.map(x=>`<li class="no"><span class="ic">!</span><span>${esc(x.t)} · <button type="button" class="linklike" data-go="${i}">${SECTIONS[i].title}</button></span></li>`).join(''):`<li class="ok"><span class="ic">✓</span><span>${SECTIONS[i].title}</span></li>`;}).join('');
+  return `<div class="card"><ul class="checklist" id="checklist">${items}</ul></div>
+    <div class="card">
+      ${C('declare_accurate','The information in this application and the documents attached are true and correct to the best of my knowledge.')}
+      ${C('declare_no_duplicate','This startup has not submitted another application to the TN SC/ST Startup Fund.')}
+      ${C('consent_processing','I consent to StartupTN collecting and processing the personal data in this application, including community certificates, to evaluate it under the TN SC/ST Startup Fund.')}
+      ${C('consent_sharing','I consent to StartupTN sharing this application with its appointed business, legal and financial due diligence partners for evaluation.')}
+    </div>
+    ${submitErr?`<div class="error" role="alert">${esc(submitErr)}</div>`:''}
+    <div><button type="button" class="btn btn-primary" id="submit-btn" data-submit="1" ${m.length||submitting?'disabled':''}>${submitting?'Submitting…':'Submit application'}</button>
+      ${m.length?`<span class="hint" style="margin-left:10px">${m.length} item${m.length>1?'s':''} left to complete</span>`:''}</div>`;
+}
+const BODY=[sStartup,sFounders,sBusiness,sFinancials,sTeam,sAsk,sDocs,sSubmit];
+
+/* ---------- live bits that change while typing ---------- */
+function refreshLive(){
+  const me=$('meter');if(me&&sec===1){me.outerHTML=meter();}
+  document.querySelectorAll('.nav button').forEach((b,i)=>b.classList.toggle('done',sectionDone(i)));
+  if(sec===5){const s=$('util-sum');if(s){const u=(app.utilisation||[]).reduce((a,r)=>a+(Number(r.amount)||0),0);const ask=Number(app.ask_amount)||0;s.querySelector('b').innerHTML=`${inr(u)}${ask&&u!==ask?` <span class="hint">(request is ${inr(ask)})</span>`:''}`;}}
+  if(sec===7)requestBody();
+}
+// Redraws wait for the mouse to be released so a click on a button is never lost.
+let pointerDown=false,bodyWaiting=false;
+function requestBody(){if(pointerDown)bodyWaiting=true;else renderBody();}
+document.addEventListener('pointerdown',()=>{pointerDown=true;},true);
+document.addEventListener('pointerup',()=>{pointerDown=false;if(bodyWaiting){bodyWaiting=false;setTimeout(renderBody,0);}},true);
+document.addEventListener('pointercancel',()=>{pointerDown=false;},true);
+
+/* ---------- rendering ---------- */
+function shell(inner){
+  return `<header class="top"><div><div class="eyebrow">StartupTN · Government of Tamil Nadu</div><h1>TN SC/ST Startup Fund</h1></div>
+    <div class="top-right">${user?`<span>${esc(user.email)}</span>${app&&app.status==='draft'?'<span class="save" id="save">'+esc(saveText())+'</span>':''}<button class="btn btn-sm" data-signout="1">Sign out</button>`:''}</div></header>${inner}`;
+}
+function render(){
+  const root=$('app');
+  if(!sb){root.innerHTML=shell(`<div class="state"><h2>The application form is not configured yet</h2><p>Add the Supabase project URL and anon key to config.js.</p></div>`);return;}
+  if(!user){root.innerHTML=shell(authView());return;}
+  if(!app){root.innerHTML=shell(`<div class="state">Loading your application…</div>`);return;}
+  if(app.status==='submitted'){root.innerHTML=shell(doneView());return;}
+  root.innerHTML=shell(`<div class="layout"><nav class="nav" aria-label="Application sections">${SECTIONS.map((s,i)=>`<button type="button" data-go="${i}" class="${i===sec?'on':''} ${sectionDone(i)?'done':''}" ${i===sec?'aria-current="step"':''}><span class="n">${sectionDone(i)?'✓':i+1}</span>${s.title}</button>`).join('')}</nav>
+    <main class="section" id="body"></main></div>`);
+  renderBody();
+}
+function renderBody(){
+  const b=$('body');if(!b)return;
+  const a=document.activeElement;const keep=a&&a.id&&b.contains(a)?{id:a.id,s:a.selectionStart,e:a.selectionEnd}:null;
+  const s=SECTIONS[sec];
+  b.innerHTML=`<div class="section-h"><div class="eyebrow">Section ${sec+1} of ${SECTIONS.length}</div><h2>${s.title}</h2><p>${esc(s.intro)}</p></div>
+    ${BODY[sec]()}
+    <div class="pager">${sec>0?`<button type="button" class="btn" data-go="${sec-1}">Back</button>`:'<span></span>'}${sec<SECTIONS.length-1?`<button type="button" class="btn btn-primary" data-go="${sec+1}">Next: ${SECTIONS[sec+1].title}</button>`:''}</div>`;
+  if(keep){const el=$(keep.id);if(el){el.focus({preventScroll:true});try{el.setSelectionRange(keep.s,keep.e);}catch(_){}}}
+}
+function authView(){
+  return `<div class="intro"><div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <h2 style="font-size:20px">Who can apply</h2>
+      <p style="margin:0;color:var(--muted)">Startups registered in Tamil Nadu in which SC/ST founders together hold more than 50% of the equity, with operational and management control vested in SC/ST shareholders.</p>
+      <h3 style="font-size:15px;margin-top:6px">Keep these ready</h3>
+      <ul><li>Community certificate for each SC/ST founder</li><li>Certificate of incorporation</li><li>Shareholding pattern or cap table</li><li>Pitch deck</li><li>Financial statements, if available</li></ul>
+      <p class="hint" style="margin:0">You can save and come back. Sign in with the same email to continue.${CFG.helpEmail?' Questions: <span class="mono">'+esc(CFG.helpEmail)+'</span>':''}</p>
+    </div>
+    <form class="card auth-form" id="auth-form" style="display:flex;flex-direction:column;gap:14px" novalidate>
+      <h2 style="font-size:20px">${authStep==='email'?'Start or continue your application':'Enter the code'}</h2>
+      ${authStep==='email'?`<p class="hint" style="margin:0">We'll email you a 6-digit code to sign in. No password needed.</p>
+        <label class="f"><span>Email</span><input type="email" id="auth-email" autocomplete="email" required value="${esc(authEmail)}"></label>
+        <button class="btn btn-primary" ${authBusy?'disabled':''}>${authBusy?'Sending…':'Email me a code'}</button>`
+      :`<p class="hint" style="margin:0">Sent to <b>${esc(authEmail)}</b>. Check spam if you don't see it.</p>
+        <label class="f"><span>6-digit code</span><input id="auth-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="mono" required></label>
+        <button class="btn btn-primary" ${authBusy?'disabled':''}>${authBusy?'Checking…':'Sign in'}</button>
+        <button type="button" class="btn btn-quiet" data-authback="1">Use a different email</button>`}
+      ${authMsg?`<div class="error" role="alert">${esc(authMsg)}</div>`:''}
+    </form></div>`;
+}
+function doneView(){
+  const e=equity();
+  return `<div class="card done-card">
+    <span class="pill" style="--pc:var(--ok)">Submitted</span>
+    <h2 style="font-size:22px">Your application has been received</h2>
+    <div><div class="hint">Application number</div><div class="no">${esc(app.app_no)}</div></div>
+    <p style="margin:0;color:var(--muted)">Submitted on ${fmtDate(app.submitted_at)}. StartupTN will review your eligibility and contact you at <b>${esc(user.email)}</b> about the next step. Quote your application number in any correspondence.</p>
+    <dl class="kv">
+      <dt>Startup</dt><dd>${esc(app.legal_name)}</dd>
+      <dt>District</dt><dd>${esc(app.district)}</dd>
+      <dt>Funding requested</dt><dd>${inr(app.ask_amount)}</dd>
+      <dt>Founders</dt><dd>${founders.map(f=>esc(f.full_name)+' ('+esc(f.community)+', '+esc(f.equity_pct)+'%)').join('<br>')}</dd>
+      <dt>SC/ST equity</dt><dd>${e.scst}%</dd>
+      <dt>Documents</dt><dd>${docs.length+founders.filter(f=>f.cert_path).length} files</dd>
+    </dl></div>`;
+}
+
+/* ---------- data ---------- */
+async function loadApp(){
+  let {data,error}=await sb.from('applications').select('*').eq('applicant_id',user.id).maybeSingle();
+  if(error){toast('Could not load your application. Reload the page to try again.');return;}
+  if(!data){
+    const ins=await sb.from('applications').insert({applicant_email:user.email}).select().single();
+    if(ins.error){toast('Could not start an application. Reload the page to try again.');return;}
+    data=ins.data;
+  }
+  app=data;
+  const [fr,dr]=await Promise.all([
+    sb.from('founders').select('*').eq('application_id',app.id).order('position'),
+    sb.from('documents').select('*').eq('application_id',app.id).order('uploaded_at')
+  ]);
+  founders=fr.data||[];docs=dr.data||[];
+  if(app.status==='draft'&&!founders.length)await addFounder(false);
+  render();
+}
+async function addFounder(rerender=true){
+  const {data,error}=await sb.from('founders').insert({application_id:app.id,position:founders.length,email:founders.length?null:user.email}).select().single();
+  if(error){toast('Could not add a founder. Try again.');return;}
+  founders.push(data);if(rerender){renderBody();refreshLive();}
+}
+async function removeFounder(id){
+  const f=founders.find(x=>x.id===id);if(!f)return;
+  const {error}=await sb.from('founders').delete().eq('id',id);
+  if(error){toast('Could not remove the founder.');return;}
+  if(f.cert_path)sb.storage.from(BUCKET).remove([f.cert_path]);
+  founders=founders.filter(x=>x.id!==id);renderBody();refreshLive();
+}
+function checkFile(file){
+  if(!['application/pdf','image/jpeg','image/png'].includes(file.type)){toast('Use a PDF, JPG or PNG file. Save Word documents as PDF first.');return false;}
+  if(file.size>MAX_MB*1048576){toast('This file is larger than '+MAX_MB+' MB.');return false;}
+  return true;
+}
+async function putFile(kind,file){
+  const path=`${user.id}/${app.id}/${kind}-${Date.now()}-${safeName(file.name)}`;
+  const {error}=await sb.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+  if(error)throw error;return path;
+}
+async function uploadDoc(kind,file,input){
+  if(!checkFile(file)){input.value='';return;}
+  setSave(1);
+  try{
+    const path=await putFile(kind,file);
+    const {data,error}=await sb.from('documents').insert({application_id:app.id,kind,path,file_name:file.name,size_bytes:file.size}).select().single();
+    if(error)throw error;
+    docs.push(data);setSave(-1);toast('Added '+file.name);renderBody();refreshLive();
+  }catch(e){setSave(-1,true);toast('Upload failed. Check your connection and try again.');input.value='';}
+}
+async function removeDoc(id){
+  const d=docs.find(x=>x.id===id);if(!d)return;
+  const {error}=await sb.from('documents').delete().eq('id',id);
+  if(error){toast('Could not remove the file.');return;}
+  sb.storage.from(BUCKET).remove([d.path]);docs=docs.filter(x=>x.id!==id);renderBody();refreshLive();
+}
+async function uploadCert(fid,file,input){
+  if(!checkFile(file)){input.value='';return;}
+  setSave(1);
+  try{
+    const path=await putFile('community-cert',file);
+    const {error}=await sb.from('founders').update({cert_path:path,cert_name:file.name}).eq('id',fid);
+    if(error)throw error;
+    const f=founders.find(x=>x.id===fid);f.cert_path=path;f.cert_name=file.name;setSave(-1);toast('Community certificate added');renderBody();refreshLive();
+  }catch(e){setSave(-1,true);toast('Upload failed. Check your connection and try again.');input.value='';}
+}
+async function removeCert(fid){
+  const f=founders.find(x=>x.id===fid);if(!f||!f.cert_path)return;
+  const old=f.cert_path;const {error}=await sb.from('founders').update({cert_path:null,cert_name:null}).eq('id',fid);
+  if(error){toast('Could not remove the certificate.');return;}
+  sb.storage.from(BUCKET).remove([old]);f.cert_path=null;f.cert_name=null;renderBody();refreshLive();
+}
+async function viewFile(path){
+  const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(path,300);
+  if(error||!data){toast('Could not open the file.');return;}
+  window.open(data.signedUrl,'_blank','noopener');
+}
+async function submit(){
+  submitting=true;submitErr='';renderBody();
+  await flushAll();
+  const {data,error}=await sb.rpc('submit_application',{p_id:app.id});
+  submitting=false;
+  if(error){submitErr=error.message||'Could not submit. Try again.';renderBody();return;}
+  app.status='submitted';app.app_no=data;app.submitted_at=new Date().toISOString();
+  window.scrollTo(0,0);render();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('submit',async e=>{
+  if(e.target.id!=='auth-form')return;e.preventDefault();authMsg='';
+  if(authStep==='email'){
+    authEmail=($('auth-email').value||'').trim().toLowerCase();
+    if(!/^\S+@\S+\.\S+$/.test(authEmail)){authMsg='Enter a valid email address.';render();return;}
+    authBusy=true;render();
+    const {error}=await sb.auth.signInWithOtp({email:authEmail,options:{shouldCreateUser:true}});
+    authBusy=false;if(error){authMsg=error.status===429?'Too many requests. Wait a few minutes and try again.':'Could not send the code. Try again.';}else authStep='code';
+    render();setTimeout(()=>{const c=$('auth-code');if(c)c.focus();},0);
+  }else{
+    const code=($('auth-code').value||'').trim();
+    if(!/^\d{6}$/.test(code)){authMsg='Enter the 6-digit code from the email.';render();return;}
+    authBusy=true;render();
+    const {error}=await sb.auth.verifyOtp({email:authEmail,token:code,type:'email'});
+    authBusy=false;if(error){authMsg='That code is wrong or has expired. Request a new one.';render();}
+  }
+});
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.authback){authStep='email';authMsg='';render();return;}
+  if(t.dataset.signout){await flushAll();await sb.auth.signOut();return;}
+  if(t.dataset.go!=null){await flushAll();sec=Number(t.dataset.go);submitErr='';render();window.scrollTo({top:0});return;}
+  if(t.dataset.addf){addFounder();return;}
+  if(t.dataset.rmf){removeFounder(t.dataset.rmf);return;}
+  if(t.dataset.rmdoc){removeDoc(t.dataset.rmdoc);return;}
+  if(t.dataset.rmcert){removeCert(t.dataset.rmcert);return;}
+  if(t.dataset.view){viewFile(t.dataset.view);return;}
+  if(t.dataset.addr){const f=t.dataset.addr;app[f]=(app[f]||[]).concat([JSON.parse(t.dataset.blank)]);queueApp(f,app[f]);renderBody();return;}
+  if(t.dataset.rmr){const f=t.dataset.rmr;app[f]=(app[f]||[]).filter((_,i)=>i!==Number(t.dataset.i));queueApp(f,app[f]);renderBody();return;}
+  if(t.dataset.submit){submit();return;}
+});
+function onEdit(e){
+  const el=e.target;if(!app||app.status!=='draft')return;
+  let v=el.type==='checkbox'?el.checked:el.value;
+  if(el.dataset.num)v=num(v);
+  if(el.dataset.a){if(e.type==='input'&&(el.type==='checkbox'||el.tagName==='SELECT'))return;queueApp(el.dataset.a,v===''?null:v);return;}
+  if(el.dataset.fo){
+    if(e.type==='input'&&(el.type==='checkbox'||el.tagName==='SELECT'))return;
+    queueFounder(el.dataset.fo,el.dataset.k,v===''?null:v);
+    if(el.dataset.k==='community'&&e.type==='change'){requestBody();}
+    return;
+  }
+  if(el.dataset.r){
+    if(e.type==='input'&&el.tagName==='SELECT')return;
+    const f=el.dataset.r,i=Number(el.dataset.i);const rows=(app[f]||[]).map(r=>Object.assign({},r));rows[i][el.dataset.k]=v;queueApp(f,rows);return;
+  }
+  if(el.dataset.rev){
+    const rows=FYS.map(fy=>{const r=(app.revenue_history||[]).find(x=>x.fy===fy)||{fy,revenue:null};return Object.assign({},r);});
+    rows.find(r=>r.fy===el.dataset.rev).revenue=num(el.value);queueApp('revenue_history',rows);return;
+  }
+}
+document.addEventListener('input',onEdit);
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.type==='file'&&el.files&&el.files[0]){
+    if(el.dataset.doc)uploadDoc(el.dataset.doc,el.files[0],el);
+    else if(el.dataset.cert)uploadCert(el.dataset.cert,el.files[0],el);
+    return;
+  }
+  onEdit(e);
+});
+
+/* ---------- boot ---------- */
+function boot(){
+  if(window.supabase&&CFG.supabaseUrl&&!/YOUR-/.test(CFG.supabaseUrl)){
+    sb=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey);
+    sb.auth.onAuthStateChange((evt,session)=>{
+      const u=session&&session.user||null;
+      if((u&&u.id)===(user&&user.id))return;
+      user=u;app=null;founders=[];docs=[];sec=0;authStep='email';
+      render();if(user)loadApp();
+    });
+  }
+  render();
+}
+boot();
+})();
+</script>
+</body>
+</html>
