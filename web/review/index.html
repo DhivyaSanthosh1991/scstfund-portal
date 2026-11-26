@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Review Pipeline — TN SC/ST Startup Fund</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+/* Layout: SOP phase strip on top, application list below, and a drawer that
+   shows the applicant's submission (read-only) beside the SOP workflow. */
+body{font-size:14px}
+.wrap{max-width:1200px}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
+.top h1{font-size:28px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.search{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;width:240px;max-width:100%}
+.who{font-size:12.5px;color:var(--muted)}
+
+.flow{display:grid;grid-template-columns:2fr 3fr 4fr;gap:10px;margin-bottom:12px}
+.phase{background:var(--surface);border:1px solid var(--line-soft);border-top:3px solid var(--pc);border-radius:var(--r);padding:12px;min-width:0}
+.phase-h{display:flex;justify-content:space-between;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--pc);margin-bottom:8px}
+.phase-h span:last-child{color:var(--faint);text-transform:none;letter-spacing:0;font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:flex;align-items:baseline;gap:8px;border:1px solid var(--line);background:var(--bg);border-radius:var(--r);padding:6px 10px;text-align:left;font-size:12.5px;flex:1 1 120px;min-width:0}
+.chip b{font-family:var(--font-mono);font-size:16px;font-weight:500;color:var(--fg)}
+.chip span{color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.chip:hover{border-color:var(--pc)}
+.chip.on{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 10%,var(--surface))}
+.outcomes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;align-items:center}
+.outcomes .lbl{font-size:12px;color:var(--muted);margin-right:4px}
+.oc{border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:4px 12px;font-size:12.5px;display:flex;gap:6px;align-items:center}
+.oc b{font-family:var(--font-mono);font-weight:500}
+.oc.on{border-color:var(--fg)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dc)}
+@media (max-width:860px){.flow{grid-template-columns:1fr}}
+
+.list-h{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.list-h h2{font-size:15px;font-weight:600}
+.list{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1.5fr) minmax(0,2fr) 70px 100px;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line-soft);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.row:last-child{border-bottom:0}
+.row.head{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:600;padding-block:9px;background:var(--surface-2)}
+button.row:hover{background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
+.r-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r-sub{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r-next{font-size:13px;color:var(--muted)}
+.r-days,.r-upd{font-size:12px;color:var(--muted)}
+.r-days.late{color:var(--warn);font-weight:600}
+@media (max-width:760px){
+  .row.head{display:none}
+  .row{grid-template-columns:1fr auto;grid-template-areas:"n p" "x x" "d u";row-gap:6px}
+  .row>:nth-child(1){grid-area:n}.row>:nth-child(2){grid-area:p}.row>:nth-child(3){grid-area:x}.row>:nth-child(4){grid-area:d}.row>:nth-child(5){grid-area:u;text-align:right}
+}
+.pill .ph{font-family:var(--font-mono);font-size:10.5px;opacity:.8}
+.empty{padding:48px 20px;text-align:center;color:var(--muted)}
+
+.overlay{position:fixed;inset:0;background:rgba(10,14,22,.5);z-index:40;display:flex;justify-content:flex-end}
+.drawer{width:min(820px,100%);height:100%;background:var(--bg);box-shadow:var(--shadow);overflow-y:auto;overscroll-behavior:contain}
+.d-head{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--line);padding-top:max(16px,env(safe-area-inset-top,0px));padding-bottom:12px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.d-head-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.d-head h2{font-size:21px;font-weight:600}
+.tabs{display:flex;gap:2px;margin-top:12px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:6px 12px;color:var(--muted);font-weight:500}
+.tab.on{color:var(--fg);border-bottom-color:var(--accent)}
+.d-body{padding-block:18px 64px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.card-h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.banner{border-radius:var(--r);padding:12px 14px;border:1px solid color-mix(in srgb,var(--bc) 45%,transparent);background:color-mix(in srgb,var(--bc) 9%,var(--surface));display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.banner b{color:var(--bc)}
+.f input,.f select,.f textarea{font-size:14px}
+
+dl.kv{display:grid;grid-template-columns:190px minmax(0,1fr);gap:8px 14px;margin:0;font-size:13.5px}
+dl.kv dt{color:var(--muted)}
+dl.kv dd{margin:0;white-space:pre-wrap;word-break:break-word}
+@media (max-width:560px){dl.kv{grid-template-columns:1fr}dl.kv dd{margin-bottom:6px}}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);font-weight:600}
+td.num{font-family:var(--font-mono);text-align:right}
+.elig{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+
+.steps{display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:12px;position:relative}
+.step:not(:last-child)::before{content:"";position:absolute;left:14px;top:30px;bottom:0;width:2px;background:var(--line)}
+.step.done:not(:last-child)::before{background:color-mix(in srgb,var(--pc) 50%,var(--line))}
+.mk{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;font-family:var(--font-mono);font-size:12px;color:var(--faint);position:relative;z-index:1}
+.step.done .mk{background:var(--pc);border-color:var(--pc);color:var(--surface)}
+.step.current .mk{border-color:var(--pc);color:var(--pc);box-shadow:0 0 0 4px color-mix(in srgb,var(--pc) 18%,transparent)}
+.step.stopped .mk{border-color:var(--danger);color:var(--danger)}
+.step-main{padding-bottom:18px;min-width:0}
+.step-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;width:100%;background:none;border:0;padding:4px 0 0;text-align:left}
+.step-head:disabled{cursor:default}
+.step-title{font-weight:600;font-size:14.5px}
+.step.upcoming .step-title,.step.skipped .step-title{color:var(--faint)}
+.step-who{font-size:12px;color:var(--muted)}
+.step-sum{font-size:12px;color:var(--muted);text-align:right;flex:none;max-width:45%}
+.step.current .step-sum{color:var(--pc);font-weight:600}
+.step.stopped .step-sum{color:var(--danger);font-weight:600}
+.step-body{margin-top:12px;display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:14px}
+.phase-tag{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--pc);margin:4px 0 10px 42px}
+.scores{display:flex;flex-direction:column;gap:8px}
+.score-row{display:grid;grid-template-columns:minmax(0,1.3fr) 90px minmax(0,2fr);gap:10px;align-items:center}
+.score-row .lbl{font-size:13px;font-weight:500}
+.score-row select,.score-row input{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:7px 9px;width:100%}
+@media (max-width:560px){.score-row{grid-template-columns:1fr 90px}.score-row input{grid-column:1/-1}}
+.total{display:flex;justify-content:space-between;font-size:13px;border-top:1px dashed var(--line);padding-top:8px}
+.total b{font-family:var(--font-mono)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px solid var(--line-soft);padding-top:12px}
+.confirm{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.packet{border:1px solid color-mix(in srgb,var(--pc) 35%,var(--line));border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px}
+.packet-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.packet-top b{font-size:13px}
+.packet pre{margin:0;white-space:pre-wrap;font-family:var(--font-mono);font-size:11.5px;line-height:1.55;color:var(--muted);background:var(--bg);border-radius:var(--r);padding:10px;max-height:260px;overflow:auto}
+details summary{cursor:pointer;font-size:12.5px;color:var(--muted)}
+.log{display:flex;flex-direction:column}
+.log-item{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.log-item:last-child{border-bottom:0}
+.log-item time{font-size:11.5px;color:var(--faint)}
+.log-item .who{color:var(--muted);font-size:12px}
+@media (prefers-reduced-motion:no-preference){.drawer{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(20px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<div class="wrap" id="main"><div class="state">Loading…</div></div>
+<div id="drawer-root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="../config.js"></script>
+<script>
+(function(){
+"use strict";
+const CFG=window.SCST_CONFIG||{};
+const BUCKET=CFG.bucket||'application-docs';
+const PHASES={1:{name:'Phase 1',sub:'Screening',color:'var(--p1)'},2:{name:'Phase 2',sub:'BDD & committees',color:'var(--p2)'},3:{name:'Phase 3',sub:'Term sheet to funding',color:'var(--p3)'}};
+const STEPS=[
+  {key:'validation',phase:1,title:'Application validation',short:'Validation',who:'Check SC/ST eligibility, completeness and duplicates'},
+  {key:'pitch',phase:1,title:'Pitch to subject matter expert',short:'SME pitch',who:'StartupTN team member handling the fund'},
+  {key:'bdd',phase:2,title:'Business due diligence (IM)',short:'With BDD partner',who:'BDD partner (vendor) prepares the IM'},
+  {key:'ic',phase:2,title:'Investment Committee',short:'IC review',who:'IC decides on the IM and discussion with the startup'},
+  {key:'psc',phase:2,title:'PSC review',short:'PSC review',who:'PSC decides on the IM and discussion with the startup'},
+  {key:'term_sheet',phase:3,title:'Term sheet',short:'Term sheet',who:'LDD partner prepares, StartupTN shares with the startup'},
+  {key:'dd',phase:3,title:'Legal & financial due diligence',short:'LDD & FDD',who:'Legal & audit partner (vendor)'},
+  {key:'ssha',phase:3,title:'SSHA & documentation',short:'SSHA',who:'Share Subscription cum Shareholders Agreement'},
+  {key:'funded',phase:3,title:'Fund release',short:'Fund release',who:'StartupTN funds the startup'}
+];
+const IDX=Object.fromEntries(STEPS.map((s,i)=>[s.key,i]));
+const OUTCOMES={funded:{label:'Funded',color:'var(--ok)'},msme:{label:'Referred to MSME Dept',color:'var(--warn)'},rejected:{label:'Rejected',color:'var(--danger)'},declined:{label:'Startup declined',color:'var(--faint)'}};
+const PARAMS=[['businessModel','Business model'],['revenue','Revenue'],['scalability','Scope of industry & scalability'],['team','Founding team strength']];
+const STAGE_TYPES=[['','Select'],['idea','Idea stage'],['prototype','Prototype'],['early','Early stage'],['growth','Growth stage']];
+const DD_STATUS=[['','Not started'],['progress','In progress'],['done','Completed']];
+const DOC_LABELS={pitch_deck:'Pitch deck',incorporation:'Certificate of incorporation',cap_table:'Shareholding pattern / cap table',financials:'Financial statements',quotation:'Capex quotation',loi:'LOI / testimonial',other:'Other',im:'Investment Memorandum',term_sheet:'Term sheet',ldd:'LDD report',fdd:'FDD report',ssha:'SSHA'};
+const LATE_DAYS=21;
+
+let sb=null,user=null,staff=null,staffList={};
+let apps=[],loaded=false,loadErr='';
+let ui={filter:'active',q:'',openId:null,tab:'workflow',pending:null,expanded:{},reopenOpen:false};
+let authStep='email',authEmail='',authBusy=false,authMsg='';
+let log=[],logFor=null;
+const queues={};
+
+/* ---------- helpers ---------- */
+const nowISO=()=>new Date().toISOString();
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function get(o,p){return p.split('.').reduce((a,k)=>a==null?undefined:a[k],o);}
+function nest(p,v){const ks=p.split('.');const out={};let c=out;ks.forEach((k,i)=>{if(i===ks.length-1)c[k]=v;else c=c[k]={};});return out;}
+function merge(a,b){const o=Object.assign({},a||{});Object.keys(b).forEach(k=>{const v=b[k];o[k]=(v&&typeof v==='object'&&!Array.isArray(v))?merge(o[k],v):v;});return o;}
+function fmtDate(v){if(!v)return '—';const d=new Date(v.length===10?v+'T00:00:00':v);return isNaN(d)?'—':d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+function inr(n){return n===''||n==null||isNaN(n)?'—':'₹'+Number(n).toLocaleString('en-IN');}
+function days(iso){return iso?Math.max(0,Math.floor((Date.now()-new Date(iso))/86400000)):0;}
+function kb(b){return !b?'':b<1048576?Math.round(b/1024)+' KB':(b/1048576).toFixed(1)+' MB';}
+function safeName(n){return n.replace(/[^A-Za-z0-9._-]+/g,'_').slice(-80);}
+function toast(m){const o=document.querySelector('.toast');if(o)o.remove();const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3200);}
+const $=id=>document.getElementById(id);
+function one(x){return Array.isArray(x)?x[0]:x;}
+function byId(id){return apps.find(a=>a.id===id);}
+function R(a){return a.review||{};}           // review row
+function D(a){return R(a).data||{};}           // review data (SOP step records)
+function sdoc(a,kind){return (a.documents||[]).filter(d=>d.kind===kind&&d.uploaded_by_staff).slice(-1)[0];}
+function equity(a){let t=0,s=0,c=0;(a.founders||[]).forEach(f=>{const e=Number(f.equity_pct)||0;t+=e;if(f.community==='SC'||f.community==='ST'){s+=e;if(f.has_control)c++;}});return {total:Math.round(t*100)/100,scst:Math.round(s*100)/100,ctrl:c};}
+function pitchTotal(a){let t=0,n=0;PARAMS.forEach(([k])=>{const v=Number(get(D(a),'pitch.scores.'+k));if(v){t+=v;n++;}});return {t,n};}
+function stageLabel(v){const f=STAGE_TYPES.find(x=>x[0]===v);return v&&f?f[1]:'';}
+
+/* ---------- data ---------- */
+async function loadAll(){
+  const {data,error}=await sb.from('applications').select('*, founders(*), documents(*), reviews(*)').eq('status','submitted').order('submitted_at',{ascending:false});
+  if(error){loadErr='Could not load applications. Reload the page to try again.';loaded=true;renderAll();return;}
+  apps=(data||[]).map(a=>{a.review=one(a.reviews)||{};delete a.reviews;(a.founders||[]).sort((x,y)=>x.position-y.position);return a;});
+  loaded=true;loadErr='';renderAll();
+}
+async function reloadOne(id){
+  const {data}=await sb.from('applications').select('*, founders(*), documents(*), reviews(*)').eq('id',id).single();
+  if(data){data.review=one(data.reviews)||{};delete data.reviews;const i=apps.findIndex(a=>a.id===id);if(i>=0)apps[i]=data;else apps.unshift(data);}
+}
+async function loadStaff(){const {data}=await sb.from('staff').select('user_id,full_name,email');(data||[]).forEach(s=>{staffList[s.user_id]=s.full_name||s.email;});}
+
+// Writes to the review row are serialised per application and guarded by
+// updated_at so two reviewers cannot silently overwrite each other.
+function saveReview(a,cols,dataPatch){
+  const run=(queues[a.id]||Promise.resolve()).then(async()=>{
+    const cur=byId(a.id)||a;const r=R(cur);
+    const body=Object.assign({},cols||{});if(dataPatch)body.data=merge(r.data,dataPatch);
+    const {data,error}=await sb.from('reviews').update(body).eq('application_id',a.id).eq('updated_at',r.updated_at).select();
+    if(error){toast('Could not save. Check your connection and try again.');return false;}
+    if(!data||!data.length){await reloadOne(a.id);renderAll();toast('Someone else updated this application. It has been reloaded; repeat your last change.');return false;}
+    cur.review=data[0];return true;
+  });
+  queues[a.id]=run.catch(()=>{});return run;
+}
+async function addLog(a,text){
+  const {error}=await sb.from('activity').insert({application_id:a.id,actor:user.id,actor_label:'StartupTN',text});
+  if(!error&&logFor===a.id)loadLog(a.id,true);
+}
+async function loadLog(id,force){
+  if(logFor===id&&!force)return;
+  const {data}=await sb.from('activity').select('*').eq('application_id',id).order('at',{ascending:false}).limit(80);
+  log=data||[];logFor=id;if(ui.openId===id)renderAll();
+}
+async function openFile(path){
+  const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(path,300);
+  if(error||!data){toast('Could not open the file.');return;}
+  window.open(data.signedUrl,'_blank','noopener');
+}
+async function uploadStaffDoc(a,kind,file,input){
+  if(!['application/pdf','image/jpeg','image/png'].includes(file.type)){toast('Attach a PDF, JPG or PNG. Save Word files as PDF first.');input.value='';return;}
+  if(file.size>20*1048576){toast('This file is larger than 20 MB.');input.value='';return;}
+  toast('Uploading '+file.name+'…');
+  const path=`staff/${a.id}/${kind}-${Date.now()}-${safeName(file.name)}`;
+  const up=await sb.storage.from(BUCKET).upload(path,file,{contentType:file.type});
+  if(up.error){toast('Upload failed. Try again.');input.value='';return;}
+  const {data,error}=await sb.from('documents').insert({application_id:a.id,kind,path,file_name:file.name,size_bytes:file.size,uploaded_by_staff:true}).select().single();
+  if(error){toast('The file uploaded but could not be recorded. Try again.');input.value='';return;}
+  (a.documents=a.documents||[]).push(data);addLog(a,'Attached '+(DOC_LABELS[kind]||kind)+': '+file.name);toast('Attached '+file.name);renderAll();
+}
+
+/* ---------- next action ---------- */
+function nextAction(a){
+  const r=R(a),d=D(a);
+  if(r.status&&r.status!=='active'){const o=OUTCOMES[r.status];return (o?o.label:'Closed')+(r.closed_reason?' · '+r.closed_reason:'');}
+  const b=d.bdd||{},t=d.termSheet||{},dd=d.dd||{},ss=d.ssha||{};
+  switch(r.stage){
+    case 'validation':return 'Verify eligibility and documents';
+    case 'pitch':return d.pitch&&d.pitch.date?'Record SME evaluation':'Schedule pitch with SME';
+    case 'bdd':return !b.sharedOn?'Share referral with BDD partner':!b.imReceivedOn?'Awaiting IM from BDD partner':'Send IM to Investment Committee';
+    case 'ic':return 'IC decision pending';
+    case 'psc':return 'PSC decision pending';
+    case 'term_sheet':return !t.preparedOn?'Awaiting term sheet from LDD partner':!t.sharedOn?'Share term sheet with startup':'Awaiting startup response';
+    case 'dd':return dd.lddStatus==='done'&&dd.fddStatus==='done'?'Move to SSHA':'LDD & FDD in progress';
+    case 'ssha':return !ss.sharedOn?'Share SSHA with startup':'Awaiting signing and documents';
+    case 'funded':return 'Record fund release';
+  }
+  return '';
+}
+
+/* ---------- focus-preserving render ---------- */
+function preserve(fn){
+  const a=document.activeElement;let snap=null;
+  if(a&&a.id&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!=='file')snap={id:a.id,val:a.value,chk:a.checked,s:a.selectionStart,e:a.selectionEnd};
+  const dr=document.querySelector('.drawer');const st=dr?dr.scrollTop:0;
+  fn();
+  const dr2=document.querySelector('.drawer');if(dr2)dr2.scrollTop=st;
+  if(snap){const el=$(snap.id);if(el){if(el.type==='checkbox')el.checked=snap.chk;else el.value=snap.val;el.focus({preventScroll:true});try{if(snap.s!=null)el.setSelectionRange(snap.s,snap.e);}catch(_){}}}
+}
+function renderAll(){preserve(()=>{renderMain();renderDrawer();});}
+
+/* ---------- main ---------- */
+function matches(a){
+  const r=R(a);
+  if(ui.q){const q=ui.q.toLowerCase();if(![a.legal_name,a.brand_name,a.app_no,a.sector,a.district,a.applicant_email,...(a.founders||[]).map(f=>f.full_name)].some(v=>(v||'').toLowerCase().includes(q)))return false;}
+  if(ui.filter==='all')return true;
+  if(ui.filter==='active')return r.status==='active';
+  if(OUTCOMES[ui.filter])return r.status===ui.filter;
+  return r.status==='active'&&r.stage===ui.filter;
+}
+function filterLabel(){
+  if(ui.filter==='active')return 'Active applications';
+  if(ui.filter==='all')return 'All applications';
+  if(OUTCOMES[ui.filter])return OUTCOMES[ui.filter].label;
+  const st=STEPS[IDX[ui.filter]];return st?PHASES[st.phase].name+' · '+st.short:'';
+}
+function header(){
+  return `<header class="top"><div><div class="eyebrow">StartupTN · TN SC/ST Startup Fund</div><h1>Review Pipeline</h1></div>
+    <div class="top-actions">${user?`<span class="who">${esc(staff&&staff.full_name||user.email)}</span>`:''}
+    ${staff?`<input class="search" id="q" type="search" placeholder="Search startup, app no., founder" value="${esc(ui.q)}" aria-label="Search applications"><button class="btn btn-sm" data-act="refresh">Refresh</button>`:''}
+    ${user?'<button class="btn btn-sm btn-quiet" data-act="signout">Sign out</button>':''}</div></header>`;
+}
+function renderMain(){
+  const m=$('main');
+  if(!sb){m.innerHTML=header()+`<div class="state"><h2>Not configured</h2><p>Add the Supabase URL and anon key to config.js.</p></div>`;return;}
+  if(!user){m.innerHTML=header()+authView();return;}
+  if(staff===null){m.innerHTML=header()+`<div class="state">Checking access…</div>`;return;}
+  if(staff===false){m.innerHTML=header()+`<div class="state"><h2>No access</h2><p>${esc(user.email)} is not on the StartupTN fund team list. Ask an admin to add you, then sign in again.</p></div>`;return;}
+  const active=apps.filter(a=>R(a).status==='active');
+  const count=k=>active.filter(a=>R(a).stage===k).length;
+  const out=k=>apps.filter(a=>R(a).status===k).length;
+  const rows=apps.filter(matches).sort((x,y)=>(R(y).updated_at||'').localeCompare(R(x).updated_at||''));
+  const flow=[1,2,3].map(p=>{const ph=PHASES[p];const steps=STEPS.filter(s=>s.phase===p);const tot=steps.reduce((n,s)=>n+count(s.key),0);
+    return `<div class="phase" style="--pc:${ph.color}"><div class="phase-h"><span>${ph.name} · ${ph.sub}</span><span>${tot} active</span></div>
+      <div class="chips">${steps.map(s=>`<button class="chip ${ui.filter===s.key?'on':''}" data-filter="${s.key}" aria-pressed="${ui.filter===s.key}"><b>${count(s.key)}</b><span>${s.short}</span></button>`).join('')}</div></div>`;}).join('');
+  const outs=`<div class="outcomes"><span class="lbl">Closed</span>${Object.entries(OUTCOMES).map(([k,o])=>`<button class="oc ${ui.filter===k?'on':''}" data-filter="${k}" style="--dc:${o.color}"><span class="dot"></span>${o.label} <b>${out(k)}</b></button>`).join('')}
+    <button class="oc ${ui.filter==='all'?'on':''}" data-filter="all" style="--dc:var(--muted)">All <b>${apps.length}</b></button></div>`;
+  let list;
+  if(!loaded)list='<div class="empty">Loading applications…</div>';
+  else if(loadErr)list=`<div class="empty">${esc(loadErr)}</div>`;
+  else if(!apps.length)list='<div class="empty"><h3 style="color:var(--fg);margin-bottom:6px">No submitted applications yet</h3><p>Applications appear here as soon as a startup submits the public form.</p></div>';
+  else if(!rows.length)list='<div class="empty">No applications match this view.</div>';
+  else list=`<div class="row head"><div>Startup</div><div>Step</div><div>Next action</div><div>In step</div><div>Updated</div></div>`+rows.map(a=>{
+    const r=R(a);const st=STEPS[IDX[r.stage]||0];const closed=r.status!=='active';const o=OUTCOMES[r.status];
+    const pc=closed?(o?o.color:'var(--muted)'):PHASES[st.phase].color;
+    const pill=closed?`<span class="pill" style="--pc:${pc}">${esc(o?o.label:'Closed')}</span>`:`<span class="pill" style="--pc:${pc}"><span class="ph">P${st.phase}</span>${esc(st.short)}</span>`;
+    const d=days(r.stage_since);
+    return `<button class="row" data-open="${esc(a.id)}"><div style="min-width:0"><div class="r-name">${esc(a.legal_name||'Untitled')}</div><div class="r-sub"><span class="mono">${esc(a.app_no)}</span>${a.district?' · '+esc(a.district):''}${a.sector?' · '+esc(a.sector):''}</div></div>
+      <div>${pill}</div><div class="r-next">${esc(nextAction(a))}</div><div class="r-days mono ${!closed&&d>=LATE_DAYS?'late':''}">${closed?'—':d+'d'}</div><div class="r-upd">${fmtDate(r.updated_at)}</div></button>`;}).join('');
+  m.innerHTML=header()+`<section class="flow" aria-label="Applications by SOP step">${flow}</section>${outs}
+    <section><div class="list-h"><h2>${esc(filterLabel())} <span class="mono" style="color:var(--faint);font-weight:400">${rows.length}</span></h2>${ui.filter!=='active'?'<button class="btn btn-sm btn-quiet" data-filter="active">Show all active</button>':''}</div>
+    <div class="list">${list}</div><p class="hint" style="margin-top:10px">Days in step turn amber after ${LATE_DAYS} days. IC and PSC can reject an application at any stage.</p></section>`;
+}
+function authView(){
+  return `<form class="auth" id="auth-form" novalidate><div class="card">
+    <h1>Staff sign in</h1><p>For the StartupTN fund team. We'll email you a 6-digit code.</p>
+    ${authStep==='email'?`<label class="f"><span>Work email</span><input type="email" id="auth-email" autocomplete="email" value="${esc(authEmail)}" required></label>
+      <button class="btn btn-primary" ${authBusy?'disabled':''}>${authBusy?'Sending…':'Email me a code'}</button>`
+    :`<p>Sent to <b>${esc(authEmail)}</b>.</p><label class="f"><span>6-digit code</span><input id="auth-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="mono" required></label>
+      <button class="btn btn-primary" ${authBusy?'disabled':''}>${authBusy?'Checking…':'Sign in'}</button><button type="button" class="btn btn-quiet" data-act="authback">Use a different email</button>`}
+    ${authMsg?`<div class="error" role="alert">${esc(authMsg)}</div>`:''}</div></form>`;
+}
+
+/* ---------- application (read-only) ---------- */
+function fileLink(path,name,size){return `<button type="button" class="linklike" data-file="${esc(path)}">${esc(name||'Open file')}</button>${size?` <span class="hint">${kb(size)}</span>`:''}`;}
+function appView(a){
+  const e=equity(a);const kv=(k,v)=>`<dt>${k}</dt><dd>${v==null||v===''?'—':v}</dd>`;const t=v=>esc(v);
+  const fund=(a.funds_raised||[]).map(x=>`<tr><td>${t(x.source)}</td><td>${t(x.instrument)}</td><td class="num">${inr(x.amount)}</td><td>${t(x.year)}</td></tr>`).join('');
+  const util=(a.utilisation||[]).map(x=>`<tr><td>${t(x.head)}</td><td class="num">${inr(x.amount)}</td></tr>`).join('');
+  const ms=(a.milestones||[]).map(x=>`<tr><td>${t(x.milestone)}</td><td>${t(x.month)}</td></tr>`).join('');
+  const docs=(a.documents||[]).filter(d=>!d.uploaded_by_staff);
+  return `
+  <div class="card"><div class="card-h">Eligibility (as declared)</div>
+    <div class="elig"><span class="pill" style="--pc:${e.scst>50?'var(--ok)':'var(--danger)'}">SC/ST equity ${e.scst}%</span>
+      <span class="pill" style="--pc:${e.ctrl?'var(--ok)':'var(--danger)'}">${e.ctrl?'Control with SC/ST founder':'Control not with SC/ST founder'}</span>
+      <span class="pill" style="--pc:${e.total<=100?'var(--muted)':'var(--danger)'}">Total listed ${e.total}%</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Founder</th><th>Community</th><th>Equity</th><th>Control</th><th>Certificate</th></tr></thead><tbody>
+    ${(a.founders||[]).map(f=>`<tr><td><b>${t(f.full_name)}</b><br><span class="hint">${t(f.designation)}${f.email?' · '+t(f.email):''}${f.phone?' · '+t(f.phone):''}</span></td><td>${t(f.community)}</td><td class="num">${t(f.equity_pct)}%</td><td>${f.has_control?'Yes':'No'}</td>
+      <td>${f.cert_path?fileLink(f.cert_path,f.cert_name):'—'}</td></tr>`).join('')}</tbody></table></div>
+    <dl class="kv" style="margin-top:12px">${kv('How control is held',t(a.control_details))}</dl></div>
+  <div class="card"><div class="card-h">Startup</div><dl class="kv">
+    ${kv('Registered name',t(a.legal_name))}${kv('Brand',t(a.brand_name))}${kv('Entity type',t(a.entity_type))}${kv('CIN / LLPIN',t(a.cin))}
+    ${kv('Incorporated',fmtDate(a.incorporation_date))}${kv('Address',t(a.address)+(a.pincode?' – '+t(a.pincode):''))}${kv('District',t(a.district))}
+    ${kv('DPIIT no.',t(a.dpiit_no))}${kv('StartupTN ID',t(a.startuptn_id))}${kv('GSTIN',t(a.gstin))}${kv('Website',t(a.website))}${kv('Sector',t(a.sector))}${kv('Stage (self-declared)',t(stageLabel(a.stage)))}
+    ${kv('Applicant email',t(a.applicant_email))}${kv('Submitted',fmtDate(a.submitted_at))}</dl></div>
+  <div class="card"><div class="card-h">Business</div><dl class="kv">
+    ${kv('Problem',t(a.problem))}${kv('Solution',t(a.solution))}${kv('Business model',t(a.business_model))}${kv('Revenue model',t(a.revenue_model))}
+    ${kv('Target customers',t(a.target_customers))}${kv('Competitors',t(a.competitors))}${kv('Differentiation',t(a.usp))}${kv('Market & scalability',t(a.scalability))}${kv('Traction',t(a.traction))}</dl></div>
+  <div class="card"><div class="card-h">Financials & team</div><dl class="kv">
+    ${(a.revenue_history||[]).map(r=>kv('Revenue FY '+t(r.fy),inr(r.revenue))).join('')}${kv('Monthly revenue now',inr(a.monthly_revenue))}
+    ${kv('Existing loans',t(a.existing_loans))}${kv('Full-time employees',t(a.fulltime_employees))}${kv('Key team',t(a.key_team))}</dl>
+    ${fund?`<div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Funds raised from</th><th>Type</th><th style="text-align:right">Amount</th><th>Year</th></tr></thead><tbody>${fund}</tbody></table></div>`:''}</div>
+  <div class="card"><div class="card-h">Funding ask</div><dl class="kv">${kv('Requested',`<b class="mono">${inr(a.ask_amount)}</b>`)}</dl>
+    ${util?`<div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Use of funds</th><th style="text-align:right">Amount</th></tr></thead><tbody>${util}</tbody></table></div>`:''}
+    ${ms?`<div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Milestone</th><th>Target</th></tr></thead><tbody>${ms}</tbody></table></div>`:''}</div>
+  <div class="card"><div class="card-h">Documents from the startup</div>
+    ${docs.length?`<div class="tbl-wrap"><table><tbody>${docs.map(d=>`<tr><td>${esc(DOC_LABELS[d.kind]||d.kind)}</td><td>${fileLink(d.path,d.file_name,d.size_bytes)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="hint">No documents.</p>'}
+    <p class="hint" style="margin:10px 0 0">Declarations and consent given on ${fmtDate(a.consent_at)}.</p></div>`;
+}
+
+/* ---------- workflow fields (write to reviews.data) ---------- */
+function fid(p){return 'f-'+p.replace(/\./g,'-');}
+function fText(a,p,l,o={}){return `<label class="f ${o.wide?'wide':''}"><span>${l}</span><input id="${fid(p)}" data-path="${p}" type="${o.type||'text'}" value="${esc(get(D(a),p)||'')}"></label>`;}
+function fNum(a,p,l){const v=get(D(a),p);return `<label class="f"><span>${l}</span><input id="${fid(p)}" data-path="${p}" data-num="1" type="number" min="0" inputmode="numeric" class="mono" value="${v===0||v?esc(v):''}"></label>`;}
+function fArea(a,p,l){return `<label class="f wide"><span>${l}</span><textarea id="${fid(p)}" data-path="${p}">${esc(get(D(a),p)||'')}</textarea></label>`;}
+function fSel(a,p,l,opts){const v=get(D(a),p)||'';return `<label class="f"><span>${l}</span><select id="${fid(p)}" data-path="${p}">${opts.map(([k,x])=>`<option value="${esc(k)}" ${String(v)===String(k)?'selected':''}>${esc(x)}</option>`).join('')}</select></label>`;}
+function fCheck(a,p,l){return `<label class="check"><input type="checkbox" id="${fid(p)}" data-path="${p}" ${get(D(a),p)?'checked':''}><span>${l}</span></label>`;}
+function fFile(a,kind,l){const d=sdoc(a,kind);return `<div class="file wide"><span class="hint" style="font-weight:500">${l}</span>${d?`<div>${fileLink(d.path,d.file_name,d.size_bytes)} <span class="hint">· ${fmtDate(d.uploaded_at)}</span></div>`:'<span class="hint">Not attached yet</span>'}
+  <input type="file" id="file-${kind}" data-sdoc="${kind}" accept="application/pdf,image/jpeg,image/png" aria-label="Attach ${esc(l)}"><span class="hint">PDF or image, up to 20 MB. Save Word files as PDF first.</span></div>`;}
+
+/* ---------- packets for vendors ---------- */
+function headerLines(a){
+  return [`Startup: ${a.legal_name||'—'}${a.brand_name?' ('+a.brand_name+')':''}`,`Application no.: ${a.app_no}`,`Entity: ${a.entity_type||'—'}  CIN/LLPIN: ${a.cin||'—'}  Incorporated: ${fmtDate(a.incorporation_date)}`,
+    `Address: ${(a.address||'—').replace(/\n/g,', ')}, ${a.district||''} ${a.pincode||''}`,`Sector: ${a.sector||'—'}  Website: ${a.website||'—'}`,`Contact: ${a.applicant_email||'—'}`,'',
+    'FOUNDERS',...(a.founders||[]).map(f=>`  ${f.full_name} — ${f.designation||'—'}, ${f.equity_pct}% equity${f.has_control?', holds management control':''}${f.email?', '+f.email:''}${f.phone?', '+f.phone:''}`)];
+}
+function bddPacket(a){
+  const d=D(a),p=d.pitch||{};const {t,n}=pitchTotal(a);
+  const L=['TN SC/ST STARTUP FUND — REFERRAL FOR BUSINESS DUE DILIGENCE','',...headerLines(a),'',
+    'FROM THE APPLICATION',`Problem: ${a.problem||'—'}`,`Solution: ${a.solution||'—'}`,`Business model: ${a.business_model||'—'}`,`Revenue model: ${a.revenue_model||'—'}`,`Traction: ${a.traction||'—'}`,
+    ...(a.revenue_history||[]).filter(r=>r.revenue!=null).map(r=>`Revenue FY ${r.fy}: ${inr(r.revenue)}`),
+    `Funding requested: ${inr(a.ask_amount)}`,...(a.utilisation||[]).map(u=>`  ${u.head}: ${inr(u.amount)}`),'',
+    'PHASE 1 SCREENING (StartupTN)',`Eligibility verified: ${get(d,'validation.equityVerified')&&get(d,'validation.controlVerified')&&get(d,'validation.certVerified')?'yes':'see notes'}`,
+    `SME pitch on ${fmtDate(p.date)} · Stage: ${stageLabel(p.startupStage)||'—'}`];
+  PARAMS.forEach(([k,l])=>{const sc=get(d,'pitch.scores.'+k),nt=get(d,'pitch.notes.'+k);L.push(`  ${l}: ${sc?sc+'/5':'not scored'}${nt?' — '+nt:''}`);});
+  L.push(`  Total: ${n?t+'/'+(n*5):'—'}`);if(p.observations)L.push(`SME observations: ${p.observations}`);
+  L.push('','Documents (pitch deck, incorporation certificate, cap table, financials) are shared separately.','','REQUESTED','Investment Memorandum with observations and scope for funding, for the Investment Committee.');
+  if(get(d,'bdd.dueOn'))L.push(`Please submit by ${fmtDate(get(d,'bdd.dueOn'))}.`);
+  return L.join('\n');
+}
+function lddPacket(a){
+  const d=D(a);
+  const L=['TN SC/ST STARTUP FUND — REFERRAL FOR TERM SHEET, LDD & FDD','',...headerLines(a),'','COMMITTEE DECISIONS',
+    `IM by ${get(d,'bdd.partner')||'BDD partner'} — funding recommended: ${inr(get(d,'bdd.recommendedAmount'))}`,
+    `IC meeting ${fmtDate(get(d,'ic.meetingDate'))}: recommended to PSC${get(d,'ic.remarks')?' — '+get(d,'ic.remarks'):''}`,
+    `PSC meeting ${fmtDate(get(d,'psc.meetingDate'))}: approved, sanctioned amount ${inr(get(d,'psc.approvedAmount'))}`];
+  if(get(d,'psc.remarks'))L.push(`PSC conditions / remarks: ${get(d,'psc.remarks')}`);
+  L.push('','REQUESTED','1. Term sheet for StartupTN to share with the startup.','2. On acceptance: Legal Due Diligence, Financial Due Diligence and the Share Subscription cum Shareholders Agreement (SSHA).');
+  return L.join('\n');
+}
+function packetBox(a,kind,title){const txt=kind==='bdd'?bddPacket(a):lddPacket(a);
+  return `<div class="packet wide"><div class="packet-top"><b>${title}</b><button class="btn btn-sm" data-act="copy" data-kind="${kind}">Copy packet</button></div><details><summary>Preview what will be shared</summary><pre>${esc(txt)}</pre></details></div>`;}
+
+/* ---------- step bodies ---------- */
+function dupes(a){
+  const n=v=>(v||'').trim().toLowerCase();
+  const fPhones=new Set((a.founders||[]).map(f=>n(f.phone)).filter(Boolean));
+  return apps.filter(o=>o.id!==a.id&&((n(o.legal_name)&&n(o.legal_name)===n(a.legal_name))||(n(o.cin)&&n(o.cin)===n(a.cin))||(o.founders||[]).some(f=>n(f.phone)&&fPhones.has(n(f.phone)))));
+}
+function stepBody(a,key){
+  const e=equity(a);
+  switch(key){
+    case 'validation':{const dp=dupes(a);
+      return `${dp.length?`<div class="warn">Possible duplicate: ${dp.map(o=>esc(o.legal_name)+' ('+esc(o.app_no)+')').join(', ')} shares a name, CIN or founder phone number.</div>`:''}
+        <p class="hint" style="margin:0">Declared: SC/ST equity ${e.scst}%, ${e.ctrl?'control with an SC/ST founder':'control not with an SC/ST founder'}. Check against the cap table and certificates in the Application tab.</p>
+        <div>${fCheck(a,'validation.certVerified','Community certificates verified with the issuing authority')}
+        ${fCheck(a,'validation.equityVerified','SC/ST founders hold more than 50% of equity (checked against the cap table)')}
+        ${fCheck(a,'validation.controlVerified','Operational and management control is vested in SC/ST shareholders')}
+        ${fCheck(a,'validation.complete','Application and documents are complete')}
+        ${fCheck(a,'validation.dupChecked','Checked for duplicate applications')}</div>
+        <div class="grid">${fArea(a,'validation.notes','Notes')}</div>`;}
+    case 'pitch':{const {t,n}=pitchTotal(a);const st=get(D(a),'pitch.startupStage');
+      return `<div class="grid">${fText(a,'pitch.date','Pitch date',{type:'date'})}${fSel(a,'pitch.startupStage','Stage assessed by SME',STAGE_TYPES)}</div>
+        ${st==='idea'||st==='prototype'?'<div class="warn">Idea and prototype stage startups are not funded under this scheme. Refer the applicant to the MSME Dept or reject.</div>':''}
+        <div class="scores"><div class="card-h" style="margin:0">Evaluation parameters (score 1–5)</div>
+        ${PARAMS.map(([k,l])=>`<div class="score-row"><span class="lbl">${l}</span>
+          <select id="${fid('pitch.scores.'+k)}" data-path="pitch.scores.${k}" data-num="1" aria-label="${l} score">${['',1,2,3,4,5].map(v=>`<option value="${v}" ${String(get(D(a),'pitch.scores.'+k)||'')===String(v)?'selected':''}>${v===''?'—':v}</option>`).join('')}</select>
+          <input id="${fid('pitch.notes.'+k)}" data-path="pitch.notes.${k}" placeholder="Note" aria-label="${l} note" value="${esc(get(D(a),'pitch.notes.'+k)||'')}"></div>`).join('')}
+        <div class="total"><span>Total</span><b>${n?t+' / '+(n*5):'—'}</b></div></div>
+        <div class="grid">${fArea(a,'pitch.observations','SME observations')}</div>`;}
+    case 'bdd':return `<div class="grid">${fText(a,'bdd.partner','BDD partner')}${fText(a,'bdd.sharedOn','Shared with partner on',{type:'date'})}
+        ${fText(a,'bdd.dueOn','IM due on',{type:'date'})}${fText(a,'bdd.imReceivedOn','IM received on',{type:'date'})}
+        ${packetBox(a,'bdd','Referral packet for the BDD partner')}${fFile(a,'im','Investment Memorandum from BDD partner')}
+        ${fNum(a,'bdd.recommendedAmount','Funding recommended in IM (₹)')}${fArea(a,'bdd.observations','Key observations and scope for funding from the IM')}</div>`;
+    case 'ic':return `<div class="grid">${fText(a,'ic.meetingDate','IC meeting date',{type:'date'})}<div class="f">${fCheck(a,'ic.discussedWithStartup','Discussed with the startup')}</div>${fArea(a,'ic.remarks','IC remarks')}</div>`;
+    case 'psc':return `<div class="grid">${fText(a,'psc.meetingDate','PSC meeting date',{type:'date'})}${fNum(a,'psc.approvedAmount','Sanctioned amount (₹)')}
+        <div class="f wide">${fCheck(a,'psc.discussedWithStartup','Discussed with the startup')}</div>${fArea(a,'psc.remarks','PSC remarks and conditions')}</div>`;
+    case 'term_sheet':return `<div class="grid">${fText(a,'termSheet.partner','LDD partner')}${fText(a,'termSheet.preparedOn','Term sheet received on',{type:'date'})}
+        ${packetBox(a,'ldd','Referral packet for the LDD partner')}${fFile(a,'term_sheet','Term sheet')}
+        ${fText(a,'termSheet.sharedOn','Shared with startup on',{type:'date'})}${fText(a,'termSheet.respondedOn','Startup responded on',{type:'date'})}${fArea(a,'termSheet.notes','Notes')}</div>`;
+    case 'dd':return `<div class="grid">${fText(a,'dd.partner','Legal & audit partner')}${fText(a,'dd.startedOn','Started on',{type:'date'})}
+        ${fSel(a,'dd.lddStatus','Legal due diligence',DD_STATUS)}${fSel(a,'dd.fddStatus','Financial due diligence',DD_STATUS)}
+        ${fFile(a,'ldd','LDD report')}${fFile(a,'fdd','FDD report')}${fArea(a,'dd.findings','Key findings')}</div>`;
+    case 'ssha':return `<div class="grid">${fFile(a,'ssha','SSHA')}${fText(a,'ssha.sharedOn','Shared with startup on',{type:'date'})}${fText(a,'ssha.signedOn','Signed on',{type:'date'})}
+        <div class="f wide">${fCheck(a,'ssha.docsComplete','All documentation completed')}</div>${fArea(a,'ssha.notes','Notes')}</div>`;
+    case 'funded':return `<div class="grid">${fNum(a,'release.amount','Amount released (₹)')}${fText(a,'release.date','Release date',{type:'date'})}
+        ${fText(a,'release.reference','Sanction order or transfer reference',{wide:true})}${fArea(a,'release.notes','Notes')}</div>`;
+  }
+  return '';
+}
+function stepActions(a,key){
+  const d=D(a),v=d.validation||{},p=d.pitch||{},b=d.bdd||{},ic=d.ic||{},ps=d.psc||{},t=d.termSheet||{},dd=d.dd||{},ss=d.ssha||{},r=d.release||{};
+  const {n}=pitchTotal(a);const A=(act,label,cls,ok,hint='')=>({act,label,cls,ok:!!ok,hint});
+  switch(key){
+    case 'validation':return [A('v_accept','Accept — send to SME pitch','btn-primary',v.certVerified&&v.equityVerified&&v.controlVerified&&v.complete&&v.dupChecked,'Tick all five checks to accept.'),A('v_reject','Reject','btn-danger',true)];
+    case 'pitch':return [A('p_bdd','Recommend for BDD','btn-primary',(p.startupStage==='early'||p.startupStage==='growth')&&n===4,'Needs all four scores and an early or growth stage startup.'),A('p_msme','Not a startup — refer to MSME Dept','btn',true),A('p_reject','Reject','btn-danger',true)];
+    case 'bdd':return [A('b_ic','Send IM to Investment Committee','btn-primary',!!b.imReceivedOn,'Enter the date the IM was received.')];
+    case 'ic':return [A('ic_psc','Recommend to PSC','btn-primary',!!ic.meetingDate,'Enter the IC meeting date.'),A('ic_reject','Reject','btn-danger',true)];
+    case 'psc':return [A('psc_ok','Approve startup','btn-primary',!!ps.meetingDate&&!!ps.approvedAmount,'Enter the PSC meeting date and sanctioned amount.'),A('psc_reject','Reject','btn-danger',true)];
+    case 'term_sheet':return [A('ts_ok','Startup accepted the term sheet','btn-primary',!!t.sharedOn,'Enter the date the term sheet was shared.'),A('ts_no','Startup declined','btn-danger',true)];
+    case 'dd':return [A('dd_ok','LDD & FDD complete — move to SSHA','btn-primary',dd.lddStatus==='done'&&dd.fddStatus==='done','Mark both LDD and FDD as completed.')];
+    case 'ssha':return [A('ssha_ok','SSHA signed — ready for fund release','btn-primary',!!ss.signedOn&&!!ss.docsComplete,'Enter the signing date and confirm documentation is complete.'),A('ssha_no','Startup declined SSHA','btn-danger',true)];
+    case 'funded':return [A('f_ok','Record fund release','btn-primary',!!r.amount&&!!r.date,'Enter the amount and release date.')];
+  }
+  return [];
+}
+const ASK={
+  v_reject:{title:'Reason for rejection',reasons:['Not SC/ST','SC/ST equity not more than 50%','Management control not with SC/ST shareholders','Community certificate not valid','Incomplete application','Duplicate application']},
+  p_reject:{title:'Reason for rejection',text:true},p_msme:{title:'Note for the MSME Dept referral (optional)',text:true,optional:true},
+  ic_reject:{title:'IC reason for rejection',text:true},psc_reject:{title:'PSC reason for rejection',text:true},
+  ts_no:{title:'Reason the startup declined',text:true,optional:true},ssha_no:{title:'Reason the startup declined',text:true,optional:true},
+  any_reject:{title:'Committee decision',body:true,text:true}
+};
+function pendingBox(a,step){
+  const p=ui.pending;if(!p||p.id!==a.id||p.step!==step)return '';const q=ASK[p.act];
+  return `<div class="confirm"><b style="font-size:13px">${esc(q.title)}</b>
+    ${q.body?'<label class="f"><span>Decided by</span><select id="pend-body"><option>Investment Committee</option><option>PSC</option></select></label>':''}
+    ${q.reasons?`<label class="f"><span>Reason</span><select id="pend-reason">${q.reasons.map(r=>`<option>${esc(r)}</option>`).join('')}</select></label>`:''}
+    ${q.text?`<label class="f"><span>${q.optional?'Note':'Reason'}</span><textarea id="pend-text" placeholder="${q.optional?'Optional':'Required'}"></textarea></label>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ${/reject|_no/.test(p.act)?'btn-danger':'btn-primary'}" data-act="confirm">Confirm</button><button class="btn btn-quiet" data-act="cancel">Cancel</button></div></div>`;
+}
+function stepSummary(a,key,state){
+  const r=R(a),d=D(a),g=p=>get(d,p);
+  if(state==='stopped'){const o=OUTCOMES[r.status];return (o?o.label:'Closed')+' '+fmtDate(r.closed_at);}
+  if(state==='current')return 'In progress · '+days(r.stage_since)+'d';
+  if(state!=='done')return '';
+  switch(key){
+    case 'validation':return 'Eligible';
+    case 'pitch':{const {t,n}=pitchTotal(a);return (n?t+'/'+(n*5):'')+(g('pitch.startupStage')?' · '+stageLabel(g('pitch.startupStage')):'');}
+    case 'bdd':return g('bdd.imReceivedOn')?'IM received '+fmtDate(g('bdd.imReceivedOn')):'Done';
+    case 'ic':return 'Recommended to PSC';
+    case 'psc':return 'Approved '+inr(g('psc.approvedAmount'));
+    case 'term_sheet':return 'Accepted by startup';
+    case 'dd':return 'Completed';
+    case 'ssha':return 'Signed '+fmtDate(g('ssha.signedOn'));
+    case 'funded':return inr(g('release.amount'))+' released';
+  }
+  return 'Done';
+}
+function workflowView(a){
+  const r=R(a);const closed=r.status!=='active';const cur=IDX[r.stage]||0;const stopIdx=closed&&r.status!=='funded'?IDX[r.closed_at_step||r.stage]:-1;const o=OUTCOMES[r.status];
+  let lastPhase=0;
+  const steps=STEPS.map((st,i)=>{
+    let state;if(r.status==='funded')state='done';else if(closed)state=i<stopIdx?'done':i===stopIdx?'stopped':'skipped';else state=i<cur?'done':i===cur?'current':'upcoming';
+    const open=state==='current'||ui.expanded[st.key];const canToggle=state==='done'||state==='stopped';const pc=PHASES[st.phase].color;
+    let tag='';if(st.phase!==lastPhase){lastPhase=st.phase;tag=`<div class="phase-tag" style="--pc:${pc}">${PHASES[st.phase].name} · ${PHASES[st.phase].sub}</div>`;}
+    const acts=state==='current'?stepActions(a,st.key):[];const blocked=acts.find(x=>!x.ok&&x.hint);
+    return `${tag}<div class="step ${state}" style="--pc:${pc}"><div class="mk" aria-hidden="true">${state==='done'?'✓':state==='stopped'?'✕':i+1}</div><div class="step-main">
+      <button class="step-head" ${canToggle?`data-toggle="${st.key}" aria-expanded="${!!open}"`:'disabled'}><div><div class="step-title">${st.title}</div><div class="step-who">${st.who}</div></div><div class="step-sum">${esc(stepSummary(a,st.key,state))}</div></button>
+      ${open?`<div class="step-body">${stepBody(a,st.key)}${acts.length?`<div class="actions">${acts.map(x=>`<button class="btn ${x.cls}" data-act="${x.act}" ${x.ok?'':'disabled'}>${esc(x.label)}</button>`).join('')}${blocked?`<span class="hint">${esc(blocked.hint)}</span>`:''}</div>`:''}${pendingBox(a,st.key)}</div>`:''}
+    </div></div>`;}).join('');
+  const banner=closed?`<div class="banner" style="--bc:${o?o.color:'var(--muted)'}"><div><b>${esc(o?o.label:'Closed')}</b> ${r.status!=='funded'?'at '+esc((STEPS[stopIdx]||{}).title||''):''} on ${fmtDate(r.closed_at)}${r.closed_reason?'<br><span class="hint">'+esc(r.closed_reason)+'</span>':''}</div>
+      ${staff&&staff.role==='admin'?'<button class="btn btn-sm" data-act="reopen-toggle">Reopen</button>':''}</div>
+    ${ui.reopenOpen?`<div class="confirm"><label class="f"><span>Reopen at step</span><select id="reopen-step">${STEPS.map(st=>`<option value="${st.key}" ${st.key===(r.closed_at_step||r.stage)?'selected':''}>${PHASES[st.phase].name} · ${st.title}</option>`).join('')}</select></label>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" data-act="reopen">Reopen application</button><button class="btn btn-quiet" data-act="reopen-toggle">Cancel</button></div></div>`:''}`:'';
+  const anyReject=!closed&&cur>=IDX.bdd?`<div class="card"><div class="card-h">Committee rejection</div><p class="hint" style="margin:0 0 10px">The IC or PSC can reject an application at any stage.</p>
+    ${ui.pending&&ui.pending.id===a.id&&ui.pending.step==='_any'?pendingBox(a,'_any'):'<button class="btn btn-danger btn-sm" data-act="any_reject">Record IC / PSC rejection</button>'}</div>`:'';
+  const logHtml=logFor!==a.id?'<p class="hint">Loading…</p>':!log.length?'<p class="hint">No activity yet.</p>':`<div class="log">${log.map(x=>`<div class="log-item"><time>${fmtDate(x.at)}<br>${new Date(x.at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</time><div>${esc(x.text)}<div class="who">${esc(x.actor_label==='Applicant'?'Applicant':(staffList[x.actor]||'StartupTN'))}</div></div></div>`).join('')}</div>`;
+  return `${banner}<div class="card"><div class="card-h">SOP workflow</div><div class="steps">${steps}</div></div>${anyReject}<div class="card"><div class="card-h">Activity</div>${logHtml}</div>`;
+}
+function renderDrawer(){
+  const root=$('drawer-root');const a=ui.openId&&byId(ui.openId);
+  if(!a||!staff){root.innerHTML='';return;}
+  const r=R(a);const closed=r.status!=='active';const st=STEPS[IDX[r.stage]||0];const o=OUTCOMES[r.status];
+  root.innerHTML=`<div class="overlay" id="overlay"><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(a.legal_name)}">
+    <div class="d-head"><div class="d-head-top"><div style="min-width:0"><h2>${esc(a.legal_name)}</h2><div class="r-sub" style="white-space:normal"><span class="mono">${esc(a.app_no)}</span>${a.district?' · '+esc(a.district):''}${a.sector?' · '+esc(a.sector):''} · submitted ${fmtDate(a.submitted_at)}</div></div>
+      <button class="btn btn-quiet" data-act="close">Close</button></div>
+      <div style="margin-top:10px">${closed?`<span class="pill" style="--pc:${o?o.color:'var(--muted)'}">${esc(o?o.label:'Closed')}</span>`:`<span class="pill" style="--pc:${PHASES[st.phase].color}"><span class="ph">P${st.phase}</span>${esc(st.title)}</span> <span class="hint">${esc(nextAction(a))}</span>`}</div>
+      <div class="tabs" role="tablist"><button class="tab ${ui.tab==='workflow'?'on':''}" data-tab="workflow" role="tab" aria-selected="${ui.tab==='workflow'}">Workflow</button><button class="tab ${ui.tab==='application'?'on':''}" data-tab="application" role="tab" aria-selected="${ui.tab==='application'}">Application</button></div>
+    </div>
+    <div class="d-body">${ui.tab==='application'?appView(a):workflowView(a)}</div></aside></div>`;
+}
+
+/* ---------- workflow moves ---------- */
+async function moveTo(a,stage,text,dataPatch){
+  const ok=await saveReview(a,{stage,status:'active',stage_since:nowISO(),closed_reason:null,closed_at_step:null,closed_at:null},dataPatch);
+  if(ok){addLog(a,text);toast(text);renderAll();}
+}
+async function closeAs(a,status,reason,text,dataPatch){
+  const ok=await saveReview(a,{status,closed_reason:reason||null,closed_at_step:R(a).stage,closed_at:nowISO()},dataPatch);
+  if(ok){addLog(a,text);toast(OUTCOMES[status].label);renderAll();}
+}
+async function runAct(a,act,reason,body){
+  const at=nowISO(),by=user.id;const d=D(a);
+  switch(act){
+    case 'v_accept':return moveTo(a,'pitch','Eligibility verified — sent to SME pitch',{validation:{outcome:'accepted',at,by}});
+    case 'v_reject':return closeAs(a,'rejected',reason,'Rejected at validation: '+reason,{validation:{outcome:'rejected',at,by}});
+    case 'p_bdd':{const {t}=pitchTotal(a);return moveTo(a,'bdd',`SME pitch scored ${t}/20 — recommended for BDD`,{pitch:{outcome:'bdd',at,by}});}
+    case 'p_msme':return closeAs(a,'msme',reason||'Not a startup','Referred to MSME Dept'+(reason?': '+reason:''),{pitch:{outcome:'msme',at,by}});
+    case 'p_reject':return closeAs(a,'rejected',reason,'Rejected after SME pitch: '+reason,{pitch:{outcome:'rejected',at,by}});
+    case 'b_ic':return moveTo(a,'ic','IM sent to the Investment Committee');
+    case 'ic_psc':return moveTo(a,'psc','IC recommended to PSC',{ic:{decision:'psc',at,by}});
+    case 'ic_reject':return closeAs(a,'rejected','IC: '+reason,'Rejected by IC: '+reason,{ic:{decision:'rejected',at,by}});
+    case 'psc_ok':return moveTo(a,'term_sheet','PSC approved — sanctioned '+inr(get(d,'psc.approvedAmount')),{psc:{decision:'approved',at,by}});
+    case 'psc_reject':return closeAs(a,'rejected','PSC: '+reason,'Rejected by PSC: '+reason,{psc:{decision:'rejected',at,by}});
+    case 'ts_ok':return moveTo(a,'dd','Startup accepted the term sheet — LDD & FDD started',{termSheet:{response:'accepted',at,by}});
+    case 'ts_no':return closeAs(a,'declined',reason||'Term sheet declined','Startup declined the term sheet'+(reason?': '+reason:''),{termSheet:{response:'declined',at,by}});
+    case 'dd_ok':return moveTo(a,'ssha','LDD & FDD completed — SSHA stage');
+    case 'ssha_ok':return moveTo(a,'funded','SSHA signed and documentation complete');
+    case 'ssha_no':return closeAs(a,'declined',reason||'SSHA declined','Startup declined the SSHA'+(reason?': '+reason:''));
+    case 'f_ok':return closeAs(a,'funded',null,`Fund released: ${inr(get(d,'release.amount'))} on ${fmtDate(get(d,'release.date'))}`);
+    case 'any_reject':return closeAs(a,'rejected',body+': '+reason,`Rejected by ${body}: ${reason}`);
+  }
+}
+async function copyPacket(a,kind){
+  const txt=kind==='bdd'?bddPacket(a):lddPacket(a);
+  try{await navigator.clipboard.writeText(txt);toast('Packet copied. Paste it into your email to the partner.');addLog(a,kind==='bdd'?'Referral packet copied for BDD partner':'Referral packet copied for LDD partner');}
+  catch(_){toast('Copy is blocked. Open the preview and select the text.');}
+}
+function closeDrawer(){ui.openId=null;ui.pending=null;ui.expanded={};ui.reopenOpen=false;ui.tab='workflow';renderAll();}
+
+/* ---------- events ---------- */
+document.addEventListener('submit',async e=>{
+  if(e.target.id!=='auth-form')return;e.preventDefault();authMsg='';
+  if(authStep==='email'){
+    authEmail=($('auth-email').value||'').trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(authEmail)){authMsg='Enter a valid email address.';renderAll();return;}
+    authBusy=true;renderAll();
+    // Staff accounts are created by an admin (README → Add staff), so a sign-in never creates a new user here.
+    const {error}=await sb.auth.signInWithOtp({email:authEmail,options:{shouldCreateUser:false}});
+    authBusy=false;if(error)authMsg=error.status===429?'Too many requests. Wait a few minutes.':'Could not send a code to this email. Check it is the address your admin added.';else authStep='code';
+    renderAll();setTimeout(()=>{const c=$('auth-code');if(c)c.focus();},0);
+  }else{
+    const code=($('auth-code').value||'').trim();if(!/^\d{6}$/.test(code)){authMsg='Enter the 6-digit code.';renderAll();return;}
+    authBusy=true;renderAll();const {error}=await sb.auth.verifyOtp({email:authEmail,token:code,type:'email'});
+    authBusy=false;if(error){authMsg='That code is wrong or has expired.';renderAll();}
+  }
+});
+document.addEventListener('click',async e=>{
+  if(e.target.id==='overlay'){closeDrawer();return;}
+  const f=e.target.closest('[data-filter]');if(f){ui.filter=f.dataset.filter;renderAll();return;}
+  const o=e.target.closest('[data-open]');if(o){ui.openId=o.dataset.open;ui.pending=null;ui.expanded={};ui.tab='workflow';log=[];logFor=null;renderAll();loadLog(ui.openId);return;}
+  const tg=e.target.closest('[data-toggle]');if(tg){const k=tg.dataset.toggle;ui.expanded[k]=!ui.expanded[k];renderAll();return;}
+  const tb=e.target.closest('[data-tab]');if(tb){ui.tab=tb.dataset.tab;renderAll();return;}
+  const fl=e.target.closest('[data-file]');if(fl){openFile(fl.dataset.file);return;}
+  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  const act=b.dataset.act;const a=ui.openId&&byId(ui.openId);
+  switch(act){
+    case 'authback':authStep='email';authMsg='';renderAll();return;
+    case 'signout':await sb.auth.signOut();return;
+    case 'refresh':await loadAll();toast('Refreshed');return;
+    case 'close':closeDrawer();return;
+    case 'copy':if(a)copyPacket(a,b.dataset.kind);return;
+    case 'cancel':ui.pending=null;renderAll();return;
+    case 'reopen-toggle':ui.reopenOpen=!ui.reopenOpen;renderAll();return;
+    case 'reopen':{if(!a)return;const stg=$('reopen-step').value;ui.reopenOpen=false;await moveTo(a,stg,'Reopened at '+STEPS[IDX[stg]].title);return;}
+    case 'confirm':{if(!a||!ui.pending)return;const q=ASK[ui.pending.act];
+      const reason=(($('pend-text')||{}).value||($('pend-reason')||{}).value||'').trim();const body=($('pend-body')||{}).value;
+      if(q.text&&!q.optional&&!reason){toast('Enter a reason.');return;}
+      const pa=ui.pending.act;ui.pending=null;await runAct(a,pa,reason,body);return;}
+  }
+  if(!a)return;
+  if(ASK[act]){ui.pending={id:a.id,act,step:act==='any_reject'?'_any':R(a).stage};renderAll();setTimeout(()=>{const el=$('pend-text')||$('pend-reason');if(el)el.focus();},0);return;}
+  runAct(a,act);
+});
+document.addEventListener('change',e=>{
+  const el=e.target;const a=ui.openId&&byId(ui.openId);
+  if(el.dataset.sdoc&&a&&el.files&&el.files[0]){uploadStaffDoc(a,el.dataset.sdoc,el.files[0],el);return;}
+  if(!el.dataset.path||!a)return;
+  let v=el.type==='checkbox'?el.checked:el.value;if(el.dataset.num)v=v===''?null:Number(v);if(typeof v==='string')v=v.trim();
+  if(get(D(a),el.dataset.path)===v)return;
+  saveReview(a,null,nest(el.dataset.path,v)).then(ok=>{if(ok)requestRender();});
+});
+// A save that finishes while the mouse is pressed would redraw the button
+// being clicked and swallow the click, so redraws wait for the release.
+let pointerDown=false,renderWaiting=false;
+function requestRender(){if(pointerDown)renderWaiting=true;else renderAll();}
+document.addEventListener('pointerdown',()=>{pointerDown=true;},true);
+document.addEventListener('pointerup',()=>{pointerDown=false;if(renderWaiting){renderWaiting=false;setTimeout(renderAll,0);}},true);
+document.addEventListener('pointercancel',()=>{pointerDown=false;},true);
+document.addEventListener('input',e=>{if(e.target.id==='q'){ui.q=e.target.value;preserve(renderMain);}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.openId)closeDrawer();});
+
+/* ---------- boot ---------- */
+function boot(){
+  if(!(window.supabase&&CFG.supabaseUrl&&!/YOUR-/.test(CFG.supabaseUrl))){renderAll();return;}
+  sb=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey);
+  sb.auth.onAuthStateChange(async(evt,session)=>{
+    const u=session&&session.user||null;if((u&&u.id)===(user&&user.id))return;
+    user=u;staff=null;apps=[];loaded=false;ui.openId=null;authStep='email';renderAll();
+    if(!user)return;
+    const {data}=await sb.from('staff').select('*').eq('user_id',user.id).maybeSingle();
+    staff=data||false;renderAll();
+    if(staff){await loadStaff();await loadAll();}
+  });
+  renderAll();
+}
+boot();
+setInterval(()=>{if(staff&&!document.hidden&&!ui.openId)loadAll();},120000);
+})();
+</script>
+</body>
+</html>
